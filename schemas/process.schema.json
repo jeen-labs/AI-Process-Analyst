@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/process.schema.json",
+  "title": "Enterprise Process Schema",
+  "description": "Canonical data model for business process information used by the AI Process Analyst platform.",
+  "type": "object",
+  "required": [
+    "process_id",
+    "process_name",
+    "process_level",
+    "version",
+    "status"
+  ],
+  "properties": {
+    "process_id": {
+      "type": "string",
+      "description": "Unique identifier for the business process."
+    },
+    "process_name": {
+      "type": "string",
+      "description": "Business process name."
+    },
+    "parent_process": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Identifier of the parent process."
+    },
+    "previous_process": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Identifier of the previous process."
+    },
+    "next_process": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Identifier of the next process."
+    },
+    "process_level": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Hierarchy level of the process."
+    },
+    "version": {
+      "type": "string",
+      "description": "Business process version."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active",
+        "Retired"
+      ],
+      "description": "Current lifecycle status of the process."
+    }
+  },
+  "additionalProperties": false
+}
