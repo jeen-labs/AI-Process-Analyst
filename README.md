@@ -108,24 +108,15 @@ This architecture will evolve incrementally as the platform matures.
 
 ---
 
-# Why Agentic AI?
+## Why Agentic AI?
 
 Traditional AI solutions often rely on a single prompt to perform multiple tasks. AI Process Analyst takes a different approach.
 
 The long-term vision is to evolve into an **Agentic AI platform**, where specialized AI agents collaborate to perform different responsibilities throughout the process analysis workflow.
 
-Potential agents include:
+Each agent is designed with a well-defined responsibility and can evolve independently, enabling better maintainability, scalability, transparency, and extensibility than a monolithic prompt-based approach.
 
-- 📖 Document Reader Agent
-- 🧩 Process Extraction Agent
-- 🔍 Quality Review Agent
-- 📑 Business Rules Agent
-- 🔗 Relationship Analysis Agent
-- 📊 Diagram Generation Agent
-- 🗃 Repository Management Agent
-- 📈 Process Intelligence Agent
-
-This modular approach improves maintainability, scalability, transparency, and future extensibility.
+The complete catalogue of agents, their responsibilities, implementation status, and interaction flow is maintained in [`agents/README.md`](agents/README.md).
 
 ---
 
