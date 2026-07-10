@@ -37,74 +37,39 @@ These challenges make business processes difficult to understand, maintain, gove
 
 ---
 
-# Our Vision
+# Vision
 
-Our vision is to build an open, extensible platform that transforms raw business process documentation into an intelligent enterprise process knowledge repository.
+AI Process Analyst aims to become an open-source Agentic AI platform for enterprise process intelligence.
 
-The platform will assist organizations by:
+The platform transforms fragmented business process documentation into structured, searchable, and continuously improving organisational knowledge while keeping human experts in control of business decisions.
 
-- Understanding business process documentation
-- Extracting structured business knowledge
-- Standardizing process information
-- Identifying missing information and inconsistencies
-- Maintaining relationships between processes
-- Generating process diagrams
-- Producing quality assessment reports
-- Supporting continuous process improvement
-
-The long-term objective is to develop an AI Process Analyst that behaves like an experienced business analyst—supporting analysis, documentation, and process intelligence while ensuring that final business decisions remain under human control.
+For the complete project vision, see **VISION.md**.
 
 ---
 
-# Key Features (Planned)
+# Planned Capabilities
 
-The platform is being designed to support the following capabilities:
+The platform will evolve incrementally through multiple development phases.
 
-- 📄 Business Process Document Ingestion
-- 🧠 AI-Assisted Process Understanding
-- 📋 Structured Knowledge Extraction
-- 🏗 Process Hierarchy Identification
-- 🔗 Process Relationship Discovery
-- ⚠ Missing Information Detection
-- ✅ Documentation Quality Review
-- 📊 Process Intelligence Reports
-- 🗂 Enterprise Process Repository
-- 📈 Mermaid Diagram Generation
-- 📦 Structured JSON Export
-- 🔍 Enterprise Process Search
-- 📚 Traceability to Original Documentation
+Major capability areas include:
+
+- AI-assisted document analysis
+- Enterprise knowledge extraction
+- Business process intelligence
+- Multi-agent collaboration
+- Repository management
+- Diagram generation
+- Process quality assessment
+
+For the complete roadmap, see **ROADMAP.md**.
 
 ---
 
 # How It Works
 
-The long-term architecture is designed around a modular AI-assisted workflow.
+AI Process Analyst follows a multi-agent workflow that transforms business process documentation into structured enterprise knowledge.
 
-```
-Business Process Documents
-            │
-            ▼
-    Document Reader
-            │
-            ▼
- Knowledge Extraction
-            │
-            ▼
-    AI Process Analyst
-            │
-            ▼
- Validation & Review
-            │
-            ▼
- Enterprise Repository
-            │
-            ├────────► Process Diagrams
-            ├────────► JSON Models
-            ├────────► Quality Reports
-            └────────► Search & Analytics
-```
-
-This architecture will evolve incrementally as the platform matures.
+For the complete execution workflow, see **docs/SYSTEM_WORKFLOW.md**.
 
 ---
 
@@ -116,7 +81,7 @@ The long-term vision is to evolve into an **Agentic AI platform**, where special
 
 Each agent is designed with a well-defined responsibility and can evolve independently, enabling better maintainability, scalability, transparency, and extensibility than a monolithic prompt-based approach.
 
-The complete catalogue of agents, their responsibilities, implementation status, and interaction flow is maintained in [`agents/README.md`](agents/README.md).
+For the complete agent catalogue, responsibilities, and architecture, see **agents/README.md**.
 
 ---
 
@@ -154,7 +119,7 @@ The project is planned as a series of incremental milestones.
 | Phase 5 | Enterprise Platform        |
 | Phase 6 | Production Release         |
 
-A detailed roadmap is available in **ROADMAP.md**.
+See **ROADMAP.md** for milestones, planned features, and release strategy.
 
 ---
 
@@ -206,6 +171,10 @@ Current development activities include:
 
 The first implementation will focus on extracting structured knowledge from business process documents.
 
+Current major focus:
+
+- Designing the enterprise Agentic AI architecture before implementation begins.
+
 ---
 
 # Contributing
@@ -230,15 +199,21 @@ Please see **CONTRIBUTING.md** for future contribution guidelines.
 
 ---
 
-# Long-Term Vision
+# Documentation
 
-AI Process Analyst aims to become an open platform for enterprise process intelligence.
+The repository follows a **Single Source of Truth** principle, where each major topic has one authoritative document. This minimises duplication and improves long-term maintainability.
 
-The goal is not simply to extract information from documents, but to help organizations preserve, understand, improve, and govern business process knowledge through responsible use of Agentic AI.
+| Topic             | Document                  |
+| ----------------- | ------------------------- |
+| Vision            | VISION.md                 |
+| Roadmap           | ROADMAP.md                |
+| Architecture      | ARCHITECTURE.md           |
+| System Workflow   | docs/SYSTEM_WORKFLOW.md   |
+| Agent Catalogue   | agents/README.md          |
+| Enterprise Schema | schemas/process.schema.md |
+| Contributing      | CONTRIBUTING.md           |
 
-The platform is intended to evolve into a collaborative AI assistant that supports business analysts, enterprise architects, process owners, and organizations in building better process intelligence while keeping human expertise central to every important decision.
-
----
+Future contributors are encouraged to update the authoritative document rather than duplicating information elsewhere in the repository.
 
 # License
 
