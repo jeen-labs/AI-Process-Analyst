@@ -2,8 +2,6 @@
 
 **Project:** AI Process Analyst
 
-**Feature ID:** F-005
-
 **Version:** 0.1.0
 
 **Status:** Draft
