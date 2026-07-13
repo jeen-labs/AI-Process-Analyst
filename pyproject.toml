@@ -1,0 +1,149 @@
+###############################################################################
+# AI Process Analyst
+#
+# Project Configuration
+#
+# This file defines project metadata, dependencies, build configuration,
+# and future development tooling.
+###############################################################################
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+###############################################################################
+# Project Metadata
+###############################################################################
+
+[project]
+
+name = "ai-process-analyst"
+
+version = "0.1.0"
+
+description = "An Open Source Agentic AI Platform for Enterprise Process Intelligence."
+
+readme = "README.md"
+
+license = { file = "LICENSE" }
+
+requires-python = ">=3.11"
+
+authors = [
+    { name = "Jeen Labs" }
+]
+
+keywords = [
+    "artificial-intelligence",
+    "agentic-ai",
+    "business-analysis",
+    "business-process",
+    "enterprise-architecture",
+    "knowledge-management",
+    "llm",
+    "process-intelligence"
+]
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+
+    "Intended Audience :: Developers",
+
+    "Intended Audience :: Information Technology",
+
+    "License :: OSI Approved :: MIT License",
+
+    "Programming Language :: Python :: 3",
+
+    "Programming Language :: Python :: 3.11",
+
+    "Operating System :: OS Independent",
+
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+
+    "Topic :: Software Development :: Libraries",
+
+    "Topic :: Office/Business"
+]
+
+###############################################################################
+# Runtime Dependencies
+###############################################################################
+
+dependencies = [
+]
+
+###############################################################################
+# Optional Dependencies
+###############################################################################
+
+[project.optional-dependencies]
+
+development = [
+
+    "black",
+
+    "flake8",
+
+    "mypy",
+
+    "pytest",
+
+    "pytest-cov"
+]
+
+llm = [
+
+    "openai",
+
+    "google-generativeai"
+]
+
+documents = [
+
+    "python-docx",
+
+    "pymupdf"
+]
+
+###############################################################################
+# Project URLs
+###############################################################################
+
+[project.urls]
+
+Homepage = "https://github.com/jeen-labs/AI-Process-Analyst"
+
+Repository = "https://github.com/jeen-labs/AI-Process-Analyst"
+
+Issues = "https://github.com/jeen-labs/AI-Process-Analyst/issues"
+
+###############################################################################
+# Black
+###############################################################################
+
+[tool.black]
+
+line-length = 88
+
+target-version = ["py311"]
+
+###############################################################################
+# Pytest
+###############################################################################
+
+[tool.pytest.ini_options]
+
+testpaths = [
+    "tests"
+]
+
+###############################################################################
+# Coverage
+###############################################################################
+
+[tool.coverage.run]
+
+source = [
+    "src"
+]

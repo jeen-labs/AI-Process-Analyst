@@ -1,32 +1,126 @@
 """
+===============================================================================
 AI Process Analyst
+===============================================================================
 
-Main application entry point.
+Module:
+    main.py
 
-This module coordinates the high-level execution of the platform.
+Purpose:
+    Application entry point for the AI Process Analyst platform.
 
-Version: 0.1.0
-Status: Development
+Responsibilities:
+    - Display application information
+    - Initialise core platform components
+    - Start the document processing workflow
+    - Handle application-level exceptions
+
+Author:
+    Jeen Labs
+
+Version:
+    0.1.0
+
+Status:
+    Development
+===============================================================================
 """
+
+# =============================================================================
+# Standard Library Imports
+# =============================================================================
+
+import sys
+
+# =============================================================================
+# Third-Party Imports
+# =============================================================================
+
+# (None)
+
+# =============================================================================
+# Project Imports
+# =============================================================================
 
 from document_loader import DocumentLoader
 
+# =============================================================================
+# Module Constants
+# =============================================================================
 
-def main():
+APPLICATION_NAME = "AI Process Analyst"
+APPLICATION_VERSION = "0.1.0"
+
+# =============================================================================
+# Main Functions
+# =============================================================================
+
+
+def display_banner() -> None:
+    """Display the application banner."""
+
+    print("=" * 70)
+    print(f"{APPLICATION_NAME}")
+    print(f"Version: {APPLICATION_VERSION}")
+    print("=" * 70)
+
+
+def initialise_platform() -> DocumentLoader:
     """
-    Application entry point.
+    Initialise platform components.
+
+    Returns
+    -------
+    DocumentLoader
+        Initialised document loader instance.
     """
 
-    print("=" * 60)
-    print("AI Process Analyst")
-    print("Version 0.1.0")
-    print("=" * 60)
+    print("Initialising platform...")
 
     loader = DocumentLoader()
 
-    print("\nPlatform initialised successfully.")
-    print(f"Supported document types: {loader.supported_extensions}")
+    print("Platform initialised successfully.")
 
+    return loader
+
+
+def main() -> int:
+    """
+    Main application entry point.
+
+    Returns
+    -------
+    int
+        Process exit code.
+    """
+
+    try:
+
+        display_banner()
+
+        loader = initialise_platform()
+
+        print()
+        print("Supported document types:")
+
+        for extension in loader.supported_extensions:
+            print(f"  • {extension}")
+
+        print()
+        print("System ready.")
+
+        return 0
+
+    except Exception as error:
+
+        print(f"Application Error: {error}")
+
+        return 1
+
+
+# =============================================================================
+# Main
+# =============================================================================
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
