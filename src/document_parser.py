@@ -7,49 +7,23 @@ Module:
     document_parser.py
 
 Purpose:
-    Prepare document text for AI processing by cleaning and structuring
-    the extracted content.
+    Prepare document text for AI processing.
 
 Responsibilities:
-    - Normalise whitespace
-    - Split text into logical sections
-    - Remove empty lines
+    - Remove unnecessary whitespace
+    - Normalize line endings
     - Prepare AI-ready text
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
 ===============================================================================
 """
-
-# =============================================================================
-# Standard Library Imports
-# =============================================================================
-
-from typing import List
-
-# =============================================================================
-# Third-Party Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Project Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Module Constants
-# =============================================================================
-
-# (None)
 
 # =============================================================================
 # Classes
@@ -61,27 +35,24 @@ class DocumentParser:
     Prepare raw document text for downstream AI processing.
 
     This class performs deterministic preprocessing only.
-    It does not interpret business meaning or use AI models.
     """
 
     def __init__(self) -> None:
         """Initialise the document parser."""
 
-        pass
+    # -------------------------------------------------------------------------
 
     def clean_text(self, text: str) -> str:
         """
-        Clean document text.
+        Clean and normalize document text.
 
         Parameters
         ----------
         text : str
-            Raw document text.
 
         Returns
         -------
         str
-            Cleaned document text.
         """
 
         lines = [
@@ -92,49 +63,23 @@ class DocumentParser:
 
         return "\n".join(lines)
 
-    def split_sections(self, text: str) -> List[str]:
+    # -------------------------------------------------------------------------
+
+    def parse(self, text: str) -> str:
         """
-        Split document into logical sections.
+        Execute document preprocessing.
 
         Parameters
         ----------
         text : str
-            Cleaned document text.
 
         Returns
         -------
-        List[str]
-            List of document sections.
+        str
+            Cleaned document ready for prompt generation.
         """
 
-        sections = text.split("\n\n")
-
-        return [
-            section.strip()
-            for section in sections
-            if section.strip()
-        ]
-
-    def parse(self, text: str) -> List[str]:
-        """
-        Execute the document parsing workflow.
-
-        Parameters
-        ----------
-        text : str
-            Raw document text.
-
-        Returns
-        -------
-        List[str]
-            Parsed document sections.
-        """
-
-        cleaned_text = self.clean_text(text)
-
-        sections = self.split_sections(cleaned_text)
-
-        return sections
+        return self.clean_text(text)
 
 
 # =============================================================================
@@ -145,19 +90,18 @@ if __name__ == "__main__":
 
     parser = DocumentParser()
 
-    sample_text = """
+    sample = """
 
-    Customer submits application.
+        Customer submits application.
 
-    Operations verifies application.
+        Operations validates documents.
 
-    Manager approves application.
+        Manager approves application.
 
     """
 
-    parsed_sections = parser.parse(sample_text)
+    print("=" * 70)
+    print("DOCUMENT PARSER TEST")
+    print("=" * 70)
 
-    print("Parsed Sections")
-
-    for index, section in enumerate(parsed_sections, start=1):
-        print(f"{index}. {section}")
+    print(parser.parse(sample))

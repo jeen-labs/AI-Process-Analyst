@@ -7,19 +7,18 @@ Module:
     schema_validator.py
 
 Purpose:
-    Validate AI-generated process data against the enterprise schema.
+    Validate parsed AI process data.
 
 Responsibilities:
-    - Validate JSON format
-    - Check required schema fields
-    - Report validation results
-    - Prepare for full JSON Schema validation
+    - Validate required fields
+    - Validate activity structure
+    - Prepare for JSON Schema validation
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
@@ -30,23 +29,7 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
-import json
-from typing import Any, Dict, List
-
-# =============================================================================
-# Third-Party Imports
-# =============================================================================
-
-# (None)
-#
-# Future:
-#     jsonschema
-
-# =============================================================================
-# Project Imports
-# =============================================================================
-
-# (None)
+from typing import Any
 
 # =============================================================================
 # Module Constants
@@ -54,7 +37,7 @@ from typing import Any, Dict, List
 
 REQUIRED_FIELDS = (
     "process_name",
-    "description",
+    "process_description",
     "activities",
 )
 
@@ -65,75 +48,54 @@ REQUIRED_FIELDS = (
 
 class SchemaValidator:
     """
-    Validate AI-generated process information.
+    Validate parsed AI process data.
 
-    This validator performs lightweight validation during Sprint 1.
-    Future versions will validate against process.schema.json.
+    Input is expected to be a Python dictionary.
     """
 
-    def __init__(self) -> None:
-        """Initialise the schema validator."""
-
-        pass
-
-    def validate(self, json_text: str) -> Dict[str, Any]:
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """
-        Validate a JSON document.
+        Validate extracted process information.
 
         Parameters
         ----------
-        json_text : str
-            JSON text returned by the AI.
+        data : dict
 
         Returns
         -------
-        Dict[str, Any]
-            Validation result.
+        dict
         """
 
-        try:
-            data = json.loads(json_text)
+        errors: list[str] = []
 
-        except json.JSONDecodeError as error:
-
-            return {
-                "valid": False,
-                "errors": [
-                    f"Invalid JSON: {error}"
-                ]
-            }
-
-        return self.validate_dictionary(data)
-
-    def validate_dictionary(
-        self,
-        data: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Validate a parsed JSON dictionary.
-
-        Parameters
-        ----------
-        data : Dict[str, Any]
-
-        Returns
-        -------
-        Dict[str, Any]
-            Validation result.
-        """
-
-        errors: List[str] = []
+        #
+        # Required fields
+        #
 
         for field in REQUIRED_FIELDS:
 
             if field not in data:
+
                 errors.append(
                     f"Missing required field: {field}"
                 )
 
+        #
+        # Activities
+        #
+
+        if "activities" in data:
+
+            if not isinstance(data["activities"], list):
+
+                errors.append(
+                    "'activities' must be a list."
+                )
+
         return {
             "valid": len(errors) == 0,
-            "errors": errors
+            "errors": errors,
+            "process": data
         }
 
 
@@ -145,21 +107,10 @@ if __name__ == "__main__":
 
     validator = SchemaValidator()
 
-    sample_json = """
-    {
+    sample = {
         "process_name": "Customer Onboarding",
-        "description": "Open a new customer account.",
-        "activities": [
-            "Receive Application",
-            "Verify Identity",
-            "Approve Account"
-        ]
+        "process_description": "Sample",
+        "activities": []
     }
-    """
 
-    result = validator.validate(sample_json)
-
-    print("=" * 70)
-    print("SCHEMA VALIDATION RESULT")
-    print("=" * 70)
-    print(result)
+    print(validator.validate(sample))

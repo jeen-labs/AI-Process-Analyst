@@ -20,7 +20,7 @@ Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
@@ -32,18 +32,6 @@ Status:
 # =============================================================================
 
 from pathlib import Path
-
-# =============================================================================
-# Third-Party Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Project Imports
-# =============================================================================
-
-# (None)
 
 # =============================================================================
 # Module Constants
@@ -64,111 +52,79 @@ SUPPORTED_EXTENSIONS = (
 class DocumentLoader:
     """
     Locate and validate business process documents.
-
-    This class performs only file discovery and validation.
-    It does not open or read document contents.
     """
 
     def __init__(self) -> None:
-        """Initialise the document loader."""
 
         self.supported_extensions = SUPPORTED_EXTENSIONS
 
-    def document_exists(self, file_path: str) -> bool:
+    # -------------------------------------------------------------------------
+
+    def load(self, document: Path) -> Path:
         """
-        Check whether a document exists.
+        Validate and return a document ready for processing.
 
         Parameters
         ----------
-        file_path : str
-            Path to the document.
-
-        Returns
-        -------
-        bool
-            True if the document exists.
-        """
-
-        return Path(file_path).exists()
-
-    def is_supported(self, file_path: str) -> bool:
-        """
-        Check whether the document type is supported.
-
-        Parameters
-        ----------
-        file_path : str
-            Path to the document.
-
-        Returns
-        -------
-        bool
-            True if the extension is supported.
-        """
-
-        extension = Path(file_path).suffix.lower()
-
-        return extension in self.supported_extensions
-
-    def validate_document(self, file_path: str) -> bool:
-        """
-        Validate a document before processing.
-
-        Parameters
-        ----------
-        file_path : str
-            Path to the document.
-
-        Returns
-        -------
-        bool
-            True if the document is valid.
-        """
-
-        if not self.document_exists(file_path):
-            return False
-
-        if not self.is_supported(file_path):
-            return False
-
-        return True
-
-    def resolve_document(self, file_path: str) -> Path:
-        """
-        Resolve a document path.
-
-        Parameters
-        ----------
-        file_path : str
-            Path supplied by the user.
+        document : Path
 
         Returns
         -------
         Path
-            Resolved Path object.
-
-        Raises
-        ------
-        FileNotFoundError
-            If the document does not exist.
-
-        ValueError
-            If the document type is unsupported.
         """
 
-        path = Path(file_path)
+        return self.resolve_document(document)
 
-        if not path.exists():
+    # -------------------------------------------------------------------------
+
+    def document_exists(self, file_path: Path) -> bool:
+
+        return file_path.exists()
+
+    # -------------------------------------------------------------------------
+
+    def is_supported(self, file_path: Path) -> bool:
+
+        return file_path.suffix.lower() in self.supported_extensions
+
+    # -------------------------------------------------------------------------
+
+    def validate_document(self, file_path: Path) -> bool:
+
+        return (
+            self.document_exists(file_path)
+            and
+            self.is_supported(file_path)
+        )
+
+    # -------------------------------------------------------------------------
+
+    def resolve_document(self, file_path: Path) -> Path:
+        """
+        Resolve and validate a document.
+
+        Parameters
+        ----------
+        file_path : Path
+
+        Returns
+        -------
+        Path
+        """
+
+        if not file_path.exists():
+
             raise FileNotFoundError(
                 f"Document not found: {file_path}"
             )
 
-        if path.suffix.lower() not in self.supported_extensions:
+        if not self.is_supported(file_path):
+
             raise ValueError(
-                f"Unsupported document type: {path.suffix}"
+                f"Unsupported document type: {file_path.suffix}"
             )
 
-        return path.resolve()
+        return file_path.resolve()
 
 
 # =============================================================================
@@ -179,7 +135,12 @@ if __name__ == "__main__":
 
     loader = DocumentLoader()
 
-    print("Supported Extensions")
+    print("=" * 70)
+    print("DOCUMENT LOADER TEST")
+    print("=" * 70)
+
+    print("Supported Extensions:")
 
     for extension in loader.supported_extensions:
-        print(f" - {extension}")
+
+        print(f"  {extension}")
