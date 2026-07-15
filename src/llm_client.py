@@ -12,16 +12,15 @@ Purpose:
 
 Responsibilities:
     - Load LLM configuration
-    - Validate prompts
-    - Abstract AI providers
-    - Return AI responses
-    - Use a mock provider during development
+    - Instantiate the configured provider
+    - Delegate AI requests
+    - Expose provider configuration
 
 Author:
     Jeen Labs
 
 Version:
-    0.3.0
+    0.4.0
 
 Status:
     Development
@@ -39,103 +38,78 @@ from typing import Any
 # =============================================================================
 
 from config_loader import ConfigLoader
-from mock_llm_response import generate_mock_response
+from llm_factory import LLMFactory
+
 
 # =============================================================================
 # Classes
 # =============================================================================
 
-
 class LLMClient:
     """
-    Generic Large Language Model client.
+    Provider-independent LLM client.
 
-    This class acts as a provider adapter.
-
-    It does not know anything about the enterprise process schema.
-    During development it simply returns a mock response.
-    Later versions will communicate with OpenAI, Gemini, Ollama,
-    Azure OpenAI and other providers.
+    This class acts as a façade over the underlying provider implementation.
     """
 
     def __init__(self) -> None:
         """
-        Initialise the configured LLM provider.
+        Initialise the LLM client.
         """
 
         loader = ConfigLoader()
 
-        configuration = loader.load_llm_config()
+        self.configuration = loader.load_llm_config()
 
-        self.provider = configuration.get("provider")
-
-        self.model = configuration.get("model")
-
-        self.temperature = configuration.get("temperature")
-
-        self.max_tokens = configuration.get("max_tokens")
-
-        self.timeout = configuration.get("timeout_seconds")
-
-        self.response_format = configuration.get("response_format")
+        self.provider = LLMFactory.create_provider(
+            self.configuration
+        )
 
     # -------------------------------------------------------------------------
 
-    def generate_response(self, prompt: str) -> str:
+    def generate_response(
+        self,
+        prompt: str
+    ) -> str:
         """
-        Generate a response from the configured provider.
+        Generate an AI response.
 
         Parameters
         ----------
         prompt : str
-            Prompt sent to the language model.
 
         Returns
         -------
         str
-            JSON response.
         """
 
-        if not prompt.strip():
-            raise ValueError("Prompt cannot be empty.")
+        return self.provider.generate_response(prompt)
 
-        #
-        # Development Mode
-        #
-        # At the moment we always return a deterministic mock response.
-        #
-        # Future versions:
-        #
-        # if self.provider == "openai":
-        #     return self._call_openai(prompt)
-        #
-        # elif self.provider == "gemini":
-        #     return self._call_gemini(prompt)
-        #
-        # elif self.provider == "ollama":
-        #     return self._call_ollama(prompt)
-        #
-        # else:
-        #     raise ValueError(...)
-        #
+    # -------------------------------------------------------------------------
 
-        return generate_mock_response()
+    def health_check(self) -> bool:
+        """
+        Verify provider availability.
+
+        Returns
+        -------
+        bool
+        """
+
+        return self.provider.health_check()
 
     # -------------------------------------------------------------------------
 
     def get_configuration(self) -> dict[str, Any]:
         """
         Return the active LLM configuration.
+
+        Returns
+        -------
+        dict
         """
 
-        return {
-            "provider": self.provider,
-            "model": self.model,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-            "timeout": self.timeout,
-            "response_format": self.response_format,
-        }
+        return self.configuration
 
 
 # =============================================================================
@@ -153,16 +127,26 @@ if __name__ == "__main__":
     configuration = client.get_configuration()
 
     for key, value in configuration.items():
+
         print(f"{key:<20} : {value}")
 
     print()
 
-    prompt = "Summarise the Customer Onboarding process."
+    print(
+        "Provider Health :",
+        "OK" if client.health_check() else "FAILED"
+    )
+
+    print()
+
+    prompt = (
+        "Summarise the Customer Onboarding process."
+    )
 
     response = client.generate_response(prompt)
 
     print("=" * 70)
-    print("MOCK LLM RESPONSE")
+    print("LLM RESPONSE")
     print("=" * 70)
 
     print(response)
