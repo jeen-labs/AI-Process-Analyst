@@ -7,19 +7,19 @@ Module:
     process_repository.py
 
 Purpose:
-    Store and retrieve validated business process information.
+    Store validated enterprise process models.
 
 Responsibilities:
-    - Store process records
-    - Retrieve process records
-    - List stored processes
-    - Prepare for future database integrations
+    - Store enterprise process models
+    - Retrieve enterprise process models
+    - Maintain an in-memory repository
+    - Prepare for future database implementations
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
@@ -30,25 +30,7 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
-from typing import Any, Dict, List, Optional
-
-# =============================================================================
-# Third-Party Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Project Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Module Constants
-# =============================================================================
-
-# (None)
+from typing import Any
 
 # =============================================================================
 # Classes
@@ -57,112 +39,110 @@ from typing import Any, Dict, List, Optional
 
 class ProcessRepository:
     """
-    Repository for storing business process information.
+    Repository for validated enterprise process models.
 
-    Sprint 1 uses an in-memory dictionary.
-    Future versions may use SQLite, PostgreSQL, Neo4j,
-    or another enterprise repository.
+    Current implementation:
+        - In-memory dictionary
+
+    Future implementations:
+        - SQLite
+        - PostgreSQL
+        - Neo4j
+        - Azure Cosmos DB
+        - Knowledge Graph
     """
 
     def __init__(self) -> None:
-        """Initialise the repository."""
 
-        self._repository: Dict[str, Dict[str, Any]] = {}
+        self._repository: dict[str, dict[str, Any]] = {}
 
-    def save(self, process: Dict[str, Any]) -> None:
+    # -------------------------------------------------------------------------
+
+    def save(
+        self,
+        process: dict[str, Any]
+    ) -> None:
         """
-        Save a business process.
-
-        Parameters
-        ----------
-        process : Dict[str, Any]
-            Validated business process.
+        Save a validated enterprise process.
         """
 
-        process_name = process.get("process_name")
+        metadata = process.get("metadata", {})
+
+        process_name = metadata.get("process_name")
 
         if not process_name:
+
             raise ValueError(
-                "Process must contain 'process_name'."
+                "Process metadata must contain 'process_name'."
             )
 
         self._repository[process_name] = process
 
-    def get(self, process_name: str) -> Optional[Dict[str, Any]]:
+    # -------------------------------------------------------------------------
+
+    def get(
+        self,
+        process_name: str
+    ) -> dict[str, Any] | None:
         """
         Retrieve a process.
-
-        Parameters
-        ----------
-        process_name : str
-
-        Returns
-        -------
-        Optional[Dict[str, Any]]
         """
 
         return self._repository.get(process_name)
 
-    def exists(self, process_name: str) -> bool:
+    # -------------------------------------------------------------------------
+
+    def exists(
+        self,
+        process_name: str
+    ) -> bool:
         """
-        Check whether a process exists.
-
-        Parameters
-        ----------
-        process_name : str
-
-        Returns
-        -------
-        bool
+        Determine whether a process exists.
         """
 
         return process_name in self._repository
 
-    def delete(self, process_name: str) -> bool:
+    # -------------------------------------------------------------------------
+
+    def delete(
+        self,
+        process_name: str
+    ) -> bool:
         """
         Delete a process.
-
-        Parameters
-        ----------
-        process_name : str
-
-        Returns
-        -------
-        bool
-            True if deleted.
         """
 
-        if process_name in self._repository:
-            del self._repository[process_name]
-            return True
+        if process_name not in self._repository:
 
-        return False
+            return False
 
-    def list_processes(self) -> List[str]:
+        del self._repository[process_name]
+
+        return True
+
+    # -------------------------------------------------------------------------
+
+    def list_processes(self) -> list[str]:
         """
-        Return all process names.
-
-        Returns
-        -------
-        List[str]
+        Return all stored process names.
         """
 
         return sorted(self._repository.keys())
 
+    # -------------------------------------------------------------------------
+
     def count(self) -> int:
         """
-        Return the number of stored processes.
-
-        Returns
-        -------
-        int
+        Number of stored processes.
         """
 
         return len(self._repository)
 
+    # -------------------------------------------------------------------------
+
     def clear(self) -> None:
         """
-        Remove all stored processes.
+        Remove every stored process.
         """
 
         self._repository.clear()
@@ -177,13 +157,15 @@ if __name__ == "__main__":
     repository = ProcessRepository()
 
     sample_process = {
-        "process_name": "Customer Onboarding",
-        "description": "Open a new customer account.",
-        "activities": [
-            "Receive Application",
-            "Verify Identity",
-            "Approve Account"
-        ]
+
+        "metadata": {
+
+            "process_name": "Customer Onboarding"
+
+        },
+
+        "activities": []
+
     }
 
     repository.save(sample_process)
@@ -192,11 +174,20 @@ if __name__ == "__main__":
     print("PROCESS REPOSITORY TEST")
     print("=" * 70)
 
-    print(f"Process Count : {repository.count()}")
+    print()
+
+    print("Stored Processes")
+
+    print("------------------------")
+
+    for process in repository.list_processes():
+
+        print(process)
 
     print()
 
-    print("Stored Processes:")
+    print("Repository Count")
 
-    for process in repository.list_processes():
-        print(f" - {process}")
+    print("------------------------")
+
+    print(repository.count())

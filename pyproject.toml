@@ -72,7 +72,9 @@ classifiers = [
 
 dependencies = [
 
-    "PyYAML>=6.0"
+    "PyYAML>=6.0",
+
+    "jsonschema>=4.25.1"
 
 ]
 

@@ -13,15 +13,15 @@ Purpose:
 Responsibilities:
     - Load LLM configuration
     - Validate prompts
-    - Prepare requests
     - Abstract AI providers
-    - Return generated responses
+    - Return AI responses
+    - Use a mock provider during development
 
 Author:
     Jeen Labs
 
 Version:
-    0.2.0
+    0.3.0
 
 Status:
     Development
@@ -39,6 +39,7 @@ from typing import Any
 # =============================================================================
 
 from config_loader import ConfigLoader
+from mock_llm_response import generate_mock_response
 
 # =============================================================================
 # Classes
@@ -49,12 +50,17 @@ class LLMClient:
     """
     Generic Large Language Model client.
 
-    Configuration is loaded from config/llm_config.yaml.
+    This class acts as a provider adapter.
+
+    It does not know anything about the enterprise process schema.
+    During development it simply returns a mock response.
+    Later versions will communicate with OpenAI, Gemini, Ollama,
+    Azure OpenAI and other providers.
     """
 
     def __init__(self) -> None:
         """
-        Initialise the LLM client.
+        Initialise the configured LLM provider.
         """
 
         loader = ConfigLoader()
@@ -77,89 +83,43 @@ class LLMClient:
 
     def generate_response(self, prompt: str) -> str:
         """
-        Generate a response from the configured LLM.
-
-        During development this method returns a mock JSON response.
-        Future versions will call the configured AI provider.
+        Generate a response from the configured provider.
 
         Parameters
         ----------
         prompt : str
+            Prompt sent to the language model.
 
         Returns
         -------
         str
-            JSON string representing the extracted process.
+            JSON response.
         """
 
         if not prompt.strip():
             raise ValueError("Prompt cannot be empty.")
 
         #
-        # Mock response
+        # Development Mode
         #
-        # This simulates the JSON that will eventually be returned
-        # by OpenAI or Gemini.
+        # At the moment we always return a deterministic mock response.
+        #
+        # Future versions:
+        #
+        # if self.provider == "openai":
+        #     return self._call_openai(prompt)
+        #
+        # elif self.provider == "gemini":
+        #     return self._call_gemini(prompt)
+        #
+        # elif self.provider == "ollama":
+        #     return self._call_ollama(prompt)
+        #
+        # else:
+        #     raise ValueError(...)
         #
 
-        return """
-{
-    "process_name": "Customer Onboarding",
-
-    "process_description": "End-to-end onboarding of a new customer.",
-
-    "process_owner": "Customer Operations",
-
-    "activities": [
-
-        {
-            "id": "ACT-001",
-            "name": "Receive Customer Application",
-            "actor": "Customer",
-            "type": "Start"
-        },
-
-        {
-            "id": "ACT-002",
-            "name": "Verify Submitted Documents",
-            "actor": "Operations Officer",
-            "type": "Task"
-        },
-
-        {
-            "id": "ACT-003",
-            "name": "Approve Customer",
-            "actor": "Operations Manager",
-            "type": "Approval"
-        },
-
-        {
-            "id": "ACT-004",
-            "name": "Create Customer Account",
-            "actor": "CRM System",
-            "type": "System Task"
-        },
-
-        {
-            "id": "ACT-005",
-            "name": "Send Welcome Email",
-            "actor": "CRM System",
-            "type": "End"
-        }
-
-    ],
-
-    "business_rules": [
-
-        "Customer identity must be verified.",
-
-        "Mandatory documents must be submitted.",
-
-        "Manager approval is required before account creation."
-
-    ]
-}
-"""
+        return generate_mock_response()
 
     # -------------------------------------------------------------------------
 
@@ -193,19 +153,16 @@ if __name__ == "__main__":
     configuration = client.get_configuration()
 
     for key, value in configuration.items():
-
         print(f"{key:<20} : {value}")
 
     print()
 
-    prompt = (
-        "Summarise the Customer Onboarding process."
-    )
+    prompt = "Summarise the Customer Onboarding process."
 
     response = client.generate_response(prompt)
 
     print("=" * 70)
-    print("LLM RESPONSE")
+    print("MOCK LLM RESPONSE")
     print("=" * 70)
 
     print(response)

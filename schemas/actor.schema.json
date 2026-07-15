@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/actor.schema.json",
+
+  "title": "Enterprise Actor Schema",
+
+  "description": "Canonical representation of an actor participating in an enterprise business process.",
+
+  "type": "object",
+
+  "required": ["actor_id", "actor_name", "actor_type"],
+
+  "properties": {
+    "actor_id": {
+      "type": "string"
+    },
+
+    "actor_name": {
+      "type": "string"
+    },
+
+    "actor_description": {
+      "type": "string"
+    },
+
+    "actor_type": {
+      "type": "string",
+
+      "enum": [
+        "Human",
+        "Department",
+        "Business Role",
+        "System",
+        "External Party",
+        "Robot",
+        "AI Agent"
+      ]
+    },
+
+    "department": {
+      "type": ["string", "null"]
+    },
+
+    "role": {
+      "type": ["string", "null"]
+    },
+
+    "email": {
+      "type": ["string", "null"]
+    },
+
+    "organisation": {
+      "type": ["string", "null"]
+    },
+
+    "responsibilities": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "systems_used": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "is_process_owner": {
+      "type": "boolean"
+    },
+
+    "notes": {
+      "type": "string"
+    }
+  },
+
+  "additionalProperties": false
+}

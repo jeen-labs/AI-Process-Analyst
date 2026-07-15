@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/decision.schema.json",
+
+  "title": "Enterprise Decision Schema",
+
+  "description": "Canonical representation of a decision point within an enterprise business process.",
+
+  "type": "object",
+
+  "required": ["decision_id", "decision_name", "decision_question"],
+
+  "properties": {
+    "decision_id": {
+      "type": "string"
+    },
+
+    "decision_name": {
+      "type": "string"
+    },
+
+    "decision_description": {
+      "type": "string"
+    },
+
+    "decision_question": {
+      "type": "string"
+    },
+
+    "decision_type": {
+      "type": "string",
+
+      "enum": ["Exclusive", "Inclusive", "Parallel", "Event", "Manual"]
+    },
+
+    "incoming_activity": {
+      "type": ["string", "null"]
+    },
+
+    "outgoing_paths": {
+      "type": "array",
+
+      "items": {
+        "type": "object",
+
+        "required": ["condition", "next_activity"],
+
+        "properties": {
+          "condition": {
+            "type": "string"
+          },
+
+          "next_activity": {
+            "type": "string"
+          },
+
+          "business_rule_id": {
+            "type": ["string", "null"]
+          }
+        },
+
+        "additionalProperties": false
+      }
+    },
+
+    "default_path": {
+      "type": ["string", "null"]
+    },
+
+    "notes": {
+      "type": "string"
+    }
+  },
+
+  "additionalProperties": false
+}

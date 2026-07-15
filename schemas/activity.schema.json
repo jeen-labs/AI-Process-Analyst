@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/activity.schema.json",
+
+  "title": "Enterprise Activity Schema",
+
+  "description": "Canonical representation of an activity within an enterprise business process.",
+
+  "type": "object",
+
+  "required": [
+    "activity_id",
+    "activity_name",
+    "activity_type",
+    "sequence_number"
+  ],
+
+  "properties": {
+    "activity_id": {
+      "type": "string"
+    },
+
+    "activity_name": {
+      "type": "string"
+    },
+
+    "activity_description": {
+      "type": "string"
+    },
+
+    "activity_type": {
+      "type": "string",
+
+      "enum": [
+        "Start",
+        "Task",
+        "User Task",
+        "System Task",
+        "Approval",
+        "Decision",
+        "Notification",
+        "Subprocess",
+        "End"
+      ]
+    },
+
+    "sequence_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+
+    "actor_id": {
+      "type": ["string", "null"]
+    },
+
+    "system_id": {
+      "type": ["string", "null"]
+    },
+
+    "input_documents": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "output_documents": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "business_rule_ids": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "next_activity": {
+      "type": ["string", "null"]
+    },
+
+    "exception_flow": {
+      "type": ["string", "null"]
+    },
+
+    "estimated_duration": {
+      "type": ["string", "null"]
+    },
+
+    "automation_candidate": {
+      "type": "boolean"
+    },
+
+    "notes": {
+      "type": "string"
+    }
+  },
+
+  "additionalProperties": false
+}

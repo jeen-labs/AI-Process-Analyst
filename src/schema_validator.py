@@ -7,18 +7,19 @@ Module:
     schema_validator.py
 
 Purpose:
-    Validate parsed AI process data.
+    Validate enterprise process data against the canonical schema family.
 
 Responsibilities:
-    - Validate required fields
-    - Validate activity structure
-    - Prepare for JSON Schema validation
+    - Load all enterprise schemas
+    - Build a schema registry
+    - Resolve inter-schema references
+    - Validate extracted process models
 
 Author:
     Jeen Labs
 
 Version:
-    0.2.0
+    0.3.0
 
 Status:
     Development
@@ -29,17 +30,32 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
+import json
+from pathlib import Path
 from typing import Any
+
+# =============================================================================
+# Third-Party Imports
+# =============================================================================
+
+import jsonschema
+from referencing import Registry, Resource
 
 # =============================================================================
 # Module Constants
 # =============================================================================
 
-REQUIRED_FIELDS = (
-    "process_name",
-    "process_description",
-    "activities",
-)
+SCHEMA_DIRECTORY = Path("schemas")
+
+PROCESS_SCHEMA = "process.schema.json"
+
+SCHEMA_FILES = [
+    "process.schema.json",
+    "activity.schema.json",
+    "actor.schema.json",
+    "decision.schema.json",
+    "business_rule.schema.json",
+]
 
 # =============================================================================
 # Classes
@@ -48,55 +64,120 @@ REQUIRED_FIELDS = (
 
 class SchemaValidator:
     """
-    Validate parsed AI process data.
-
-    Input is expected to be a Python dictionary.
+    Validate enterprise process models against the canonical schema family.
     """
 
-    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+    def __init__(self) -> None:
+
+        self.schemas = self._load_schemas()
+
+        self.registry = self._build_registry()
+
+        self.schema = self.schemas[PROCESS_SCHEMA]
+
+        self.validator = jsonschema.Draft202012Validator(
+            self.schema,
+            registry=self.registry,
+        )
+
+    # ---------------------------------------------------------------------
+
+    def _load_schemas(self) -> dict[str, dict[str, Any]]:
+        """
+        Load every schema in the schemas folder.
+        """
+
+        schemas: dict[str, dict[str, Any]] = {}
+
+        for filename in SCHEMA_FILES:
+
+            path = SCHEMA_DIRECTORY / filename
+
+            if not path.exists():
+
+                raise FileNotFoundError(
+                    f"Schema not found: {path}"
+                )
+
+            with open(path, encoding="utf-8") as file:
+
+                schemas[filename] = json.load(file)
+
+        return schemas
+
+    # ---------------------------------------------------------------------
+
+    def _build_registry(self) -> Registry:
+        """
+        Build a schema registry for resolving $ref references.
+        """
+
+        registry = Registry()
+
+        for filename, schema in self.schemas.items():
+
+            #
+            # Register by filename because our schemas use:
+            #
+            #     "$ref": "actor.schema.json"
+            #
+            registry = registry.with_resource(
+                filename,
+                Resource.from_contents(schema)
+            )
+
+            #
+            # Register by schema ID as well.
+            #
+            schema_id = schema.get("$id")
+
+            if schema_id:
+
+                registry = registry.with_resource(
+                    schema_id,
+                    Resource.from_contents(schema)
+                )
+
+        return registry
+
+    # ---------------------------------------------------------------------
+
+    def validate(
+        self,
+        process_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Validate extracted process information.
-
-        Parameters
-        ----------
-        data : dict
-
-        Returns
-        -------
-        dict
         """
 
-        errors: list[str] = []
+        errors = sorted(
+            self.validator.iter_errors(process_data),
+            key=lambda error: error.path
+        )
 
-        #
-        # Required fields
-        #
+        if not errors:
 
-        for field in REQUIRED_FIELDS:
-
-            if field not in data:
-
-                errors.append(
-                    f"Missing required field: {field}"
-                )
-
-        #
-        # Activities
-        #
-
-        if "activities" in data:
-
-            if not isinstance(data["activities"], list):
-
-                errors.append(
-                    "'activities' must be a list."
-                )
+            return {
+                "valid": True,
+                "errors": []
+            }
 
         return {
-            "valid": len(errors) == 0,
-            "errors": errors,
-            "process": data
+            "valid": False,
+            "errors": [
+                error.message
+                for error in errors
+            ]
         }
+
+    # ---------------------------------------------------------------------
+
+    def get_schema_names(self) -> list[str]:
+        """
+        Return loaded schema names.
+        """
+
+        return list(self.schemas.keys())
 
 
 # =============================================================================
@@ -107,10 +188,20 @@ if __name__ == "__main__":
 
     validator = SchemaValidator()
 
-    sample = {
-        "process_name": "Customer Onboarding",
-        "process_description": "Sample",
-        "activities": []
-    }
+    print("=" * 70)
+    print("ENTERPRISE SCHEMA VALIDATOR")
+    print("=" * 70)
 
-    print(validator.validate(sample))
+    print()
+
+    print("Loaded Schemas")
+
+    print("-----------------------------")
+
+    for schema in validator.get_schema_names():
+
+        print(schema)
+
+    print()
+
+    print("Schema registry created successfully.")

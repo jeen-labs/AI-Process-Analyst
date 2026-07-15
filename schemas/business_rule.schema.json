@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/business_rule.schema.json",
+
+  "title": "Enterprise Business Rule Schema",
+
+  "description": "Canonical representation of a business rule governing enterprise business processes.",
+
+  "type": "object",
+
+  "required": ["rule_id", "rule_name", "rule_type", "rule_statement"],
+
+  "properties": {
+    "rule_id": {
+      "type": "string"
+    },
+
+    "rule_name": {
+      "type": "string"
+    },
+
+    "rule_description": {
+      "type": "string"
+    },
+
+    "rule_type": {
+      "type": "string",
+
+      "enum": [
+        "Validation",
+
+        "Decision",
+
+        "Compliance",
+
+        "Calculation",
+
+        "Approval",
+
+        "Eligibility",
+
+        "Security",
+
+        "Notification",
+
+        "Regulatory",
+
+        "Other"
+      ]
+    },
+
+    "rule_statement": {
+      "type": "string"
+    },
+
+    "source_reference": {
+      "type": ["string", "null"]
+    },
+
+    "applies_to_activities": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "related_decisions": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "priority": {
+      "type": "string",
+
+      "enum": ["Low", "Medium", "High", "Critical"]
+    },
+
+    "mandatory": {
+      "type": "boolean"
+    },
+
+    "automatable": {
+      "type": "boolean"
+    },
+
+    "owner": {
+      "type": ["string", "null"]
+    },
+
+    "effective_date": {
+      "type": ["string", "null"]
+    },
+
+    "review_date": {
+      "type": ["string", "null"]
+    },
+
+    "notes": {
+      "type": "string"
+    }
+  },
+
+  "additionalProperties": false
+}

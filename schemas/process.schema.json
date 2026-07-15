@@ -1,64 +1,252 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
+
   "$id": "https://github.com/jeen-labs/AI-Process-Analyst/schemas/process.schema.json",
+
   "title": "Enterprise Process Schema",
-  "description": "Canonical data model for business process information used by the AI Process Analyst platform.",
+
+  "description": "Canonical enterprise process model used throughout the AI Process Analyst platform.",
+
   "type": "object",
-  "required": [
-    "process_id",
-    "process_name",
-    "process_level",
-    "version",
-    "status"
-  ],
+
+  "required": ["metadata", "overview", "activities"],
+
   "properties": {
-    "process_id": {
-      "type": "string",
-      "description": "Unique identifier for the business process."
-    },
-    "process_name": {
-      "type": "string",
-      "description": "Business process name."
-    },
-    "parent_process": {
-      "type": [
-        "string",
-        "null"
+    "metadata": {
+      "type": "object",
+
+      "required": [
+        "process_id",
+        "process_name",
+        "process_level",
+        "version",
+        "status",
+        "schema_version"
       ],
-      "description": "Identifier of the parent process."
+
+      "properties": {
+        "process_id": {
+          "type": "string"
+        },
+
+        "process_name": {
+          "type": "string"
+        },
+
+        "parent_process": {
+          "type": ["string", "null"]
+        },
+
+        "previous_process": {
+          "type": ["string", "null"]
+        },
+
+        "next_process": {
+          "type": ["string", "null"]
+        },
+
+        "process_level": {
+          "type": "integer",
+          "minimum": 1
+        },
+
+        "version": {
+          "type": "string"
+        },
+
+        "status": {
+          "type": "string",
+          "enum": ["Draft", "Active", "Retired"]
+        },
+
+        "created_by": {
+          "type": "string"
+        },
+
+        "created_on": {
+          "type": "string"
+        },
+
+        "schema_version": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false
     },
-    "previous_process": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Identifier of the previous process."
+
+    "overview": {
+      "type": "object",
+
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+
+        "objective": {
+          "type": "string"
+        },
+
+        "scope": {
+          "type": "string"
+        },
+
+        "trigger": {
+          "type": "string"
+        },
+
+        "end_condition": {
+          "type": "string"
+        }
+      },
+
+      "additionalProperties": false
     },
-    "next_process": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "Identifier of the next process."
+
+    "actors": {
+      "type": "array",
+
+      "items": {
+        "$ref": "actor.schema.json"
+      }
     },
-    "process_level": {
-      "type": "integer",
-      "minimum": 1,
-      "description": "Hierarchy level of the process."
+
+    "systems": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
     },
-    "version": {
-      "type": "string",
-      "description": "Business process version."
+
+    "documents": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
     },
-    "status": {
-      "type": "string",
-      "enum": [
-        "Draft",
-        "Active",
-        "Retired"
-      ],
-      "description": "Current lifecycle status of the process."
+
+    "inputs": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "outputs": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "activities": {
+      "type": "array",
+
+      "items": {
+        "$ref": "activity.schema.json"
+      }
+    },
+
+    "decisions": {
+      "type": "array",
+
+      "items": {
+        "$ref": "decision.schema.json"
+      }
+    },
+
+    "business_rules": {
+      "type": "array",
+
+      "items": {
+        "$ref": "business_rule.schema.json"
+      }
+    },
+
+    "risks": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "controls": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "kpis": {
+      "type": "array",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "relationships": {
+      "type": "object",
+
+      "properties": {
+        "previous_process": {
+          "type": ["string", "null"]
+        },
+
+        "next_process": {
+          "type": ["string", "null"]
+        },
+
+        "subprocesses": {
+          "type": "array",
+
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+
+      "additionalProperties": false
+    },
+
+    "source": {
+      "type": "object",
+
+      "properties": {
+        "document_name": {
+          "type": "string"
+        },
+
+        "document_type": {
+          "type": "string"
+        },
+
+        "page_numbers": {
+          "type": "array",
+
+          "items": {
+            "type": "integer"
+          }
+        },
+
+        "confidence_score": {
+          "type": "number",
+
+          "minimum": 0,
+
+          "maximum": 1
+        }
+      },
+
+      "additionalProperties": false
     }
   },
+
   "additionalProperties": false
 }
