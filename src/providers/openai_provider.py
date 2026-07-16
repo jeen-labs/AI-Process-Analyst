@@ -7,32 +7,43 @@ Module:
     openai_provider.py
 
 Purpose:
-    OpenAI implementation of the enterprise LLM provider interface.
+    OpenAI implementation of the provider interface.
 
 Responsibilities:
-    - Validate prompts
-    - Generate responses using OpenAI
-    - Perform provider health checks
-    - Encapsulate all OpenAI-specific logic
+    - Connect to the OpenAI API
+    - Submit prompts
+    - Return structured responses
+    - Report provider health
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
-    Development (Mock Mode)
+    Development
 ===============================================================================
 """
+
+# =============================================================================
+# Standard Library Imports
+# =============================================================================
+
+import os
+from typing import Any
+
+# =============================================================================
+# Third-Party Imports
+# =============================================================================
+
+from openai import OpenAI
 
 # =============================================================================
 # Project Imports
 # =============================================================================
 
 from providers.base_provider import BaseProvider
-
-from mock_llm_response import generate_mock_response
 
 
 # =============================================================================
@@ -41,13 +52,53 @@ from mock_llm_response import generate_mock_response
 
 class OpenAIProvider(BaseProvider):
     """
-    OpenAI implementation of the BaseProvider interface.
-
-    During Version 0.1 this provider returns mock enterprise process data.
-
-    Future versions will replace the mock implementation with the official
-    OpenAI Python SDK.
+    OpenAI provider implementation.
     """
+
+    def __init__(
+        self,
+        configuration: dict[str, Any]
+    ) -> None:
+
+        super().__init__(configuration)
+
+        api_key = os.getenv(
+            configuration["api_key_environment_variable"]
+        )
+
+        if not api_key:
+            raise RuntimeError(
+                "OpenAI API key not found. "
+                "Set the OPENAI_API_KEY environment variable."
+            )
+
+        self.client = OpenAI(api_key=api_key)
+
+    # -------------------------------------------------------------------------
+
+    def provider_name(self) -> str:
+        """
+        Return the provider name.
+        """
+
+        return "OpenAI"
+
+    # -------------------------------------------------------------------------
+
+    def health_check(self) -> bool:
+        """
+        Verify that the provider is available.
+        """
+
+        try:
+
+            self.client.models.list()
+
+            return True
+
+        except Exception:
+
+            return False
 
     # -------------------------------------------------------------------------
 
@@ -56,51 +107,15 @@ class OpenAIProvider(BaseProvider):
         prompt: str
     ) -> str:
         """
-        Generate an AI response.
-
-        Parameters
-        ----------
-        prompt : str
-
-        Returns
-        -------
-        str
-            Enterprise process JSON.
+        Generate a response from OpenAI.
         """
 
-        if not prompt.strip():
-            raise ValueError("Prompt cannot be empty.")
+        response = self.client.responses.create(
 
-        return generate_mock_response()
+            model=self.configuration["model"],
 
-    # -------------------------------------------------------------------------
+            input=prompt
 
-    def health_check(self) -> bool:
-        """
-        Check provider availability.
+        )
 
-        Returns
-        -------
-        bool
-        """
-
-        #
-        # Future:
-        #
-        # Ping OpenAI API
-        #
-
-        return True
-
-    # -------------------------------------------------------------------------
-
-    def provider_name(self) -> str:
-        """
-        Return provider name.
-
-        Returns
-        -------
-        str
-        """
-
-        return "openai"
+        return response.output_text

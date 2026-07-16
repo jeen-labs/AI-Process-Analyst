@@ -5,32 +5,29 @@
 #
 # This file contains the runtime configuration for the configured
 # Large Language Model (LLM).
-#
-# The application should read these settings rather than hardcoding
-# provider-specific values inside Python modules.
 ###############################################################################
 
 # =============================================================================
 # Active Provider
 # =============================================================================
 
-provider: openai
+provider: gemini
 
-# Supported providers (planned):
+# Supported providers
 #
 # openai
 # gemini
-# azure_openai
 # anthropic
+# azure_openai
 # ollama
-# local
+# mock
 #
 
 # =============================================================================
 # Model Configuration
 # =============================================================================
 
-model: gpt-5.5
+model: gemini-flash-latest
 
 temperature: 0.1
 
@@ -48,13 +45,12 @@ timeout_seconds: 60
 # API Configuration
 # =============================================================================
 
-base_url: https://api.openai.com/v1
+base_url: https://generativelanguage.googleapis.com
 
-api_key_environment_variable: OPENAI_API_KEY
+api_key_environment_variable: GOOGLE_API_KEY
 
-# Never store API keys inside this repository.
-#
-# API keys must be provided through environment variables.
+# Never store API keys in source control.
+# Use environment variables instead.
 
 # =============================================================================
 # Response Configuration
@@ -65,12 +61,22 @@ response_format: json
 stream: false
 
 # =============================================================================
-# Retry Policy
+# Retry Configuration
 # =============================================================================
 
-retry_attempts: 3
+retry_attempts: 5
 
 retry_delay_seconds: 2
+
+retry_exponential_backoff: true
+
+max_retry_delay_seconds: 30
+
+# =============================================================================
+# Processing Configuration
+# =============================================================================
+
+document_processing_delay_seconds: 2
 
 # =============================================================================
 # Logging
@@ -81,6 +87,10 @@ log_requests: true
 log_responses: false
 
 log_token_usage: true
+
+log_response_time: true
+
+log_retry_attempts: true
 
 # =============================================================================
 # Prompt Configuration

@@ -12,7 +12,7 @@ Author:
     Jeen Labs
 
 Version:
-    0.3.0
+    0.4.0
 
 Status:
     Development
@@ -23,6 +23,7 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
+import time
 from pathlib import Path
 
 # =============================================================================
@@ -61,12 +62,24 @@ class AIProcessAnalyst:
         self.validator = SchemaValidator()
         self.repository = ProcessRepository()
 
+        configuration = self.llm.get_configuration()
+
+        self.processing_delay = configuration.get(
+            "document_processing_delay_seconds",
+            0
+        )
+
     # -------------------------------------------------------------------------
 
     def run(self) -> None:
         """
         Execute the complete application workflow.
         """
+
+        application_start = time.perf_counter()
+
+        successful_documents = 0
+        failed_documents = 0
 
         print("=" * 80)
         print("AI PROCESS ANALYST")
@@ -79,7 +92,7 @@ class AIProcessAnalyst:
 
         for key, value in configuration.items():
 
-            print(f"  {key:<18}: {value}")
+            print(f"  {key:<32}: {value}")
 
         print()
 
@@ -92,33 +105,69 @@ class AIProcessAnalyst:
         except FileNotFoundError:
 
             print("Sample document folder not found.")
-
             return
 
         if not documents:
 
             print("No supported documents discovered.")
-
             return
 
         print(f"{len(documents)} document(s) discovered.\n")
 
-        for document in documents:
+        for index, document in enumerate(documents, start=1):
 
-            self.process_document(document)
+            success = self.process_document(document)
+
+            if success:
+                successful_documents += 1
+            else:
+                failed_documents += 1
+
+            #
+            # Delay between documents
+            #
+
+            if (
+                index < len(documents)
+                and self.processing_delay > 0
+            ):
+
+                time.sleep(self.processing_delay)
+
+        elapsed = time.perf_counter() - application_start
+
+        print("=" * 80)
+        print("EXECUTION SUMMARY")
+        print("=" * 80)
+
+        print(f"Documents discovered : {len(documents)}")
+        print(f"Successful           : {successful_documents}")
+        print(f"Failed               : {failed_documents}")
+        print(f"Repository size      : {self.repository.count()}")
+        print(f"Elapsed time         : {elapsed:.2f} seconds")
 
         print("\nApplication completed successfully.")
 
     # -------------------------------------------------------------------------
 
-    def process_document(self, document: Path) -> None:
+    def process_document(
+        self,
+        document: Path
+    ) -> bool:
         """
         Process a single document.
+
+        Returns
+        -------
+        bool
+            True if processing succeeds.
         """
 
         print("=" * 80)
         print(f"Processing Document : {document.name}")
         print("=" * 80)
+
+        document_start = time.perf_counter()
 
         try:
 
@@ -152,7 +201,9 @@ class AIProcessAnalyst:
 
             print("[4/8] Building extraction prompt...")
 
-            prompt = self.prompt_builder.build_prompt(parsed_document)
+            prompt = self.prompt_builder.build_prompt(
+                parsed_document
+            )
 
             #
             # Stage 5
@@ -162,13 +213,23 @@ class AIProcessAnalyst:
 
             response = self.llm.generate_response(prompt)
 
+            print()
+            print("=" * 80)
+            print("RAW LLM RESPONSE")
+            print("=" * 80)
+            print(response)
+            print("=" * 80)
+            print()
+
             #
             # Stage 6
             #
 
             print("[6/8] Parsing LLM response...")
 
-            extracted_process = self.response_parser.parse(response)
+            extracted_process = self.response_parser.parse(
+                response
+            )
 
             #
             # Stage 7
@@ -176,7 +237,9 @@ class AIProcessAnalyst:
 
             print("[7/8] Validating extracted process...")
 
-            self.validator.validate(extracted_process)
+            self.validator.validate(
+                extracted_process
+            )
 
             #
             # Stage 8
@@ -184,13 +247,32 @@ class AIProcessAnalyst:
 
             print("[8/8] Saving process repository...")
 
-            self.repository.save(extracted_process)
+            self.repository.save(
+                extracted_process
+            )
 
-            print("Document processed successfully.\n")
+            elapsed = time.perf_counter() - document_start
+
+            print(
+                f"Document processed successfully "
+                f"({elapsed:.2f} seconds).\n"
+            )
+
+            return True
 
         except Exception as error:
 
-            print(f"\nProcessing failed:\n{error}\n")
+            elapsed = time.perf_counter() - document_start
+
+            print(
+                f"\nProcessing failed "
+                f"({elapsed:.2f} seconds):"
+            )
+
+            print(error)
+            print()
+
+            return False
 
 
 # =============================================================================

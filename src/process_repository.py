@@ -78,6 +78,54 @@ class ProcessRepository:
 
         self._repository[process_name] = process
 
+    
+
+    def save(
+        self,
+        process: dict[str, Any]
+    ) -> None:
+        """
+        Save a validated enterprise process.
+
+        Supports both the legacy schema and the newer
+        process_metadata schema.
+        """
+
+        process_name = None
+
+        #
+        # Preferred schema
+        #
+        if "process_metadata" in process:
+
+            metadata = process["process_metadata"]
+
+            process_name = metadata.get("process_name")
+
+        #
+        # Legacy schema
+        #
+        elif "metadata" in process:
+
+            metadata = process["metadata"]
+
+            process_name = metadata.get("process_name")
+
+        #
+        # Flat schema (backward compatibility)
+        #
+        if not process_name:
+
+            process_name = process.get("process_name")
+
+        if not process_name:
+
+            raise ValueError(
+                "Process must contain 'process_name'."
+            )
+
+        self._repository[process_name] = process
+
     # -------------------------------------------------------------------------
 
     def get(

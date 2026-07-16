@@ -19,7 +19,7 @@ Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
@@ -31,7 +31,7 @@ Status:
 # =============================================================================
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 # =============================================================================
 # Third-Party Imports
@@ -52,35 +52,36 @@ CONFIG_DIRECTORY = Path("config")
 
 class ConfigLoader:
     """
-    Load YAML configuration files for the application.
+    Central configuration loader for the application.
     """
 
-    def __init__(self) -> None:
-        """
-        Initialise the configuration loader.
-        """
-        self.config_directory = CONFIG_DIRECTORY
+    CONFIG_DIRECTORY = CONFIG_DIRECTORY
 
-    def load_yaml(self, filename: str) -> Dict[str, Any]:
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_yaml(
+        cls,
+        filename: str
+    ) -> dict[str, Any]:
         """
         Load a YAML configuration file.
 
         Parameters
         ----------
         filename : str
-            Name of the YAML file.
 
         Returns
         -------
-        Dict[str, Any]
-            Parsed configuration.
+        dict
         """
 
-        file_path = self.config_directory / filename
+        file_path = cls.CONFIG_DIRECTORY / filename
 
         if not file_path.exists():
+
             raise FileNotFoundError(
-                f"Configuration file not found: {file_path}"
+                f"Configuration file not found:\n{file_path}"
             )
 
         with file_path.open(
@@ -90,40 +91,94 @@ class ConfigLoader:
 
             configuration = yaml.safe_load(yaml_file)
 
-        return configuration or {}
+        if configuration is None:
 
-    def load_llm_config(self) -> Dict[str, Any]:
+            return {}
+
+        if not isinstance(configuration, dict):
+
+            raise ValueError(
+                f"{filename} must contain a YAML dictionary."
+            )
+
+        return configuration
+
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_configuration(
+        cls,
+        filename: str
+    ) -> dict[str, Any]:
+        """
+        Generic configuration loader.
+        """
+
+        return cls.load_yaml(filename)
+
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_llm_configuration(cls) -> dict[str, Any]:
         """
         Load LLM configuration.
 
-        Returns
-        -------
-        Dict[str, Any]
+        This is now the preferred method.
         """
 
-        return self.load_yaml("llm_config.yaml")
+        return cls.load_yaml("llm_config.yaml")
 
-    def load_logging_config(self) -> Dict[str, Any]:
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_llm_config(cls) -> dict[str, Any]:
+        """
+        Backward compatibility.
+
+        Older modules may still call this method.
+        """
+
+        return cls.load_llm_configuration()
+
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_logging_configuration(cls) -> dict[str, Any]:
         """
         Load logging configuration.
-
-        Returns
-        -------
-        Dict[str, Any]
         """
 
-        return self.load_yaml("logging.yaml")
+        return cls.load_yaml("logging.yaml")
 
-    def load_prompt_config(self) -> Dict[str, Any]:
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_logging_config(cls) -> dict[str, Any]:
+        """
+        Backward compatibility.
+        """
+
+        return cls.load_logging_configuration()
+
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_prompt_configuration(cls) -> dict[str, Any]:
         """
         Load prompt configuration.
-
-        Returns
-        -------
-        Dict[str, Any]
         """
 
-        return self.load_yaml("prompts.yaml")
+        return cls.load_yaml("prompts.yaml")
+
+    # -------------------------------------------------------------------------
+
+    @classmethod
+    def load_prompt_config(cls) -> dict[str, Any]:
+        """
+        Backward compatibility.
+        """
+
+        return cls.load_prompt_configuration()
 
 
 # =============================================================================
@@ -132,20 +187,20 @@ class ConfigLoader:
 
 if __name__ == "__main__":
 
-    loader = ConfigLoader()
-
     print("=" * 70)
     print("CONFIGURATION TEST")
     print("=" * 70)
 
     try:
 
-        configuration = loader.load_llm_config()
+        configuration = ConfigLoader.load_llm_configuration()
+
+        print()
 
         for key, value in configuration.items():
 
-            print(f"{key}: {value}")
+            print(f"{key:<35}: {value}")
 
-    except FileNotFoundError as error:
+    except Exception as error:
 
         print(error)

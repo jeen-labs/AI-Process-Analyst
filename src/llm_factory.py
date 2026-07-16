@@ -19,7 +19,7 @@ Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
@@ -37,9 +37,12 @@ from typing import Any
 # =============================================================================
 
 from providers.base_provider import BaseProvider
+from providers.mock_provider import MockProvider
 from providers.openai_provider import OpenAIProvider
+from providers.gemini_provider import GeminiProvider
 
-# Future imports
+#
+# Future Providers
 #
 # from providers.gemini_provider import GeminiProvider
 # from providers.ollama_provider import OllamaProvider
@@ -51,9 +54,11 @@ from providers.openai_provider import OpenAIProvider
 # Classes
 # =============================================================================
 
+
 class LLMFactory:
     """
-    Factory responsible for creating the configured LLM provider.
+    Factory responsible for constructing the configured
+    Large Language Model provider.
     """
 
     @staticmethod
@@ -74,28 +79,50 @@ class LLMFactory:
 
         provider = configuration.get(
             "provider",
-            ""
+            "mock"
         ).lower()
 
+        # ---------------------------------------------------------------------
+        # Gemini Provider
+        # ---------------------------------------------------------------------
+
+        if provider == "gemini":
+            return GeminiProvider(configuration)
+
+        # ---------------------------------------------------------------------
+        # Mock Provider
+        # ---------------------------------------------------------------------
+
+        if provider == "mock":
+
+            return MockProvider(configuration)
+
+        # ---------------------------------------------------------------------
+        # OpenAI Provider
+        # ---------------------------------------------------------------------
+
         if provider == "openai":
+
             return OpenAIProvider(configuration)
 
+        # ---------------------------------------------------------------------
+        # Future Providers
+        # ---------------------------------------------------------------------
+
         #
-        # Future providers
-        #
-        # elif provider == "gemini":
+        # if provider == "gemini":
         #     return GeminiProvider(configuration)
         #
-        # elif provider == "ollama":
+        # if provider == "ollama":
         #     return OllamaProvider(configuration)
         #
-        # elif provider == "azure":
+        # if provider == "azure":
         #     return AzureOpenAIProvider(configuration)
         #
-        # elif provider == "anthropic":
+        # if provider == "anthropic":
         #     return AnthropicProvider(configuration)
         #
 
         raise ValueError(
-            f"Unsupported LLM provider: {provider}"
+            f"Unsupported LLM provider: '{provider}'."
         )

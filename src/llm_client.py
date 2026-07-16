@@ -7,20 +7,21 @@ Module:
     llm_client.py
 
 Purpose:
-    Provide a provider-independent interface for interacting with
-    Large Language Models (LLMs).
+    High-level interface for interacting with the configured Large Language
+    Model (LLM).
 
 Responsibilities:
     - Load LLM configuration
-    - Instantiate the configured provider
-    - Delegate AI requests
-    - Expose provider configuration
+    - Create the configured provider
+    - Submit prompts
+    - Log provider execution
+    - Hide provider implementation details
 
 Author:
     Jeen Labs
 
 Version:
-    0.4.0
+    0.2.0
 
 Status:
     Development
@@ -31,7 +32,7 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
-from typing import Any
+import time
 
 # =============================================================================
 # Project Imports
@@ -47,14 +48,12 @@ from llm_factory import LLMFactory
 
 class LLMClient:
     """
-    Provider-independent LLM client.
-
-    This class acts as a façade over the underlying provider implementation.
+    Client responsible for interacting with the configured LLM provider.
     """
 
     def __init__(self) -> None:
         """
-        Initialise the LLM client.
+        Initialise the configured provider.
         """
 
         loader = ConfigLoader()
@@ -72,7 +71,7 @@ class LLMClient:
         prompt: str
     ) -> str:
         """
-        Generate an AI response.
+        Generate a response from the configured provider.
 
         Parameters
         ----------
@@ -83,70 +82,66 @@ class LLMClient:
         str
         """
 
-        return self.provider.generate_response(prompt)
+        print()
+
+        print(
+            f"Provider : {self.provider.provider_name()}"
+        )
+
+        print(
+            f"Model    : {self.configuration.get('model', 'Unknown')}"
+        )
+
+        start_time = time.perf_counter()
+
+        response = self.provider.generate_response(
+            prompt
+        )
+
+        elapsed = time.perf_counter() - start_time
+
+        if self.configuration.get(
+            "log_response_time",
+            False
+        ):
+
+            print(
+                f"Total response time : "
+                f"{elapsed:.2f} seconds"
+            )
+
+        return response
 
     # -------------------------------------------------------------------------
 
     def health_check(self) -> bool:
         """
-        Verify provider availability.
-
-        Returns
-        -------
-        bool
+        Verify provider connectivity.
         """
 
         return self.provider.health_check()
 
     # -------------------------------------------------------------------------
 
-    def get_configuration(self) -> dict[str, Any]:
+    def provider_name(self) -> str:
         """
-        Return the active LLM configuration.
+        Return active provider name.
+        """
 
-        Returns
-        -------
-        dict
+        return self.provider.provider_name()
+
+    # -------------------------------------------------------------------------
+
+    def configuration_summary(self) -> dict:
+        """
+        Return active configuration.
         """
 
         return self.configuration
+    
+    def get_configuration(self) -> dict:
+        """
+        Return the active configuration.
+        """
 
-
-# =============================================================================
-# Main
-# =============================================================================
-
-if __name__ == "__main__":
-
-    client = LLMClient()
-
-    print("=" * 70)
-    print("ACTIVE LLM CONFIGURATION")
-    print("=" * 70)
-
-    configuration = client.get_configuration()
-
-    for key, value in configuration.items():
-
-        print(f"{key:<20} : {value}")
-
-    print()
-
-    print(
-        "Provider Health :",
-        "OK" if client.health_check() else "FAILED"
-    )
-
-    print()
-
-    prompt = (
-        "Summarise the Customer Onboarding process."
-    )
-
-    response = client.generate_response(prompt)
-
-    print("=" * 70)
-    print("LLM RESPONSE")
-    print("=" * 70)
-
-    print(response)
+        return self.configuration
