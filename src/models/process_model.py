@@ -7,19 +7,20 @@ Module:
     process_model.py
 
 Purpose:
-    Define the core business process model exchanged between
+    Define the canonical enterprise process model exchanged between all
     platform components.
 
 Responsibilities:
-    - Represent a business process
-    - Provide a common data structure
-    - Support future serialisation and persistence
+    - Represent an enterprise business process
+    - Provide a strongly-typed domain model
+    - Support serialisation/deserialisation
+    - Serve as the canonical object used throughout the application
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.6.0
 
 Status:
     Development
@@ -30,97 +31,152 @@ Status:
 # Standard Library Imports
 # =============================================================================
 
-from dataclasses import dataclass, field
-from typing import Dict, List
+from dataclasses import asdict
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+
 
 # =============================================================================
-# Third-Party Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Project Imports
-# =============================================================================
-
-# (None)
-
-# =============================================================================
-# Data Models
+# Data Model
 # =============================================================================
 
 
 @dataclass
 class ProcessModel:
     """
-    Represents a business process.
+    Canonical enterprise process model.
 
-    This model is the canonical representation of a process within
-    AI Process Analyst.
+    This class mirrors process.schema.json and is the single business object
+    exchanged throughout the application.
     """
 
-    process_name: str = ""
-    description: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    activities: List[str] = field(default_factory=list)
+    overview: dict[str, Any] = field(default_factory=dict)
 
-    business_rules: List[str] = field(default_factory=list)
+    actors: list[dict[str, Any]] = field(default_factory=list)
 
-    actors: List[str] = field(default_factory=list)
+    systems: list[str] = field(default_factory=list)
 
-    systems: List[str] = field(default_factory=list)
+    documents: list[str] = field(default_factory=list)
 
-    inputs: List[str] = field(default_factory=list)
+    inputs: list[str] = field(default_factory=list)
 
-    outputs: List[str] = field(default_factory=list)
+    outputs: list[str] = field(default_factory=list)
 
-    metadata: Dict[str, str] = field(default_factory=dict)
+    activities: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dictionary(self) -> Dict:
+    decisions: list[dict[str, Any]] = field(default_factory=list)
+
+    business_rules: list[dict[str, Any]] = field(default_factory=list)
+
+    risks: list[str] = field(default_factory=list)
+
+    controls: list[str] = field(default_factory=list)
+
+    kpis: list[str] = field(default_factory=list)
+
+    relationships: dict[str, Any] = field(default_factory=dict)
+
+    source: dict[str, Any] = field(default_factory=dict)
+
+    # -------------------------------------------------------------------------
+
+    def to_dictionary(self) -> dict[str, Any]:
         """
-        Convert the model into a dictionary.
-
-        Returns
-        -------
-        Dict
+        Convert the ProcessModel into a dictionary.
         """
 
-        return {
-            "process_name": self.process_name,
-            "description": self.description,
-            "activities": self.activities,
-            "business_rules": self.business_rules,
-            "actors": self.actors,
-            "systems": self.systems,
-            "inputs": self.inputs,
-            "outputs": self.outputs,
-            "metadata": self.metadata,
-        }
+        return asdict(self)
+
+    # -------------------------------------------------------------------------
 
     @classmethod
-    def from_dictionary(cls, data: Dict) -> "ProcessModel":
+    def from_dictionary(
+        cls,
+        data: dict[str, Any]
+    ) -> "ProcessModel":
         """
-        Create a ProcessModel from a dictionary.
-
-        Parameters
-        ----------
-        data : Dict
-
-        Returns
-        -------
-        ProcessModel
+        Create a ProcessModel from a validated dictionary.
         """
 
         return cls(
-            process_name=data.get("process_name", ""),
-            description=data.get("description", ""),
-            activities=data.get("activities", []),
-            business_rules=data.get("business_rules", []),
-            actors=data.get("actors", []),
-            systems=data.get("systems", []),
-            inputs=data.get("inputs", []),
-            outputs=data.get("outputs", []),
+
             metadata=data.get("metadata", {}),
+
+            overview=data.get("overview", {}),
+
+            actors=data.get("actors", []),
+
+            systems=data.get("systems", []),
+
+            documents=data.get("documents", []),
+
+            inputs=data.get("inputs", []),
+
+            outputs=data.get("outputs", []),
+
+            activities=data.get("activities", []),
+
+            decisions=data.get("decisions", []),
+
+            business_rules=data.get("business_rules", []),
+
+            risks=data.get("risks", []),
+
+            controls=data.get("controls", []),
+
+            kpis=data.get("kpis", []),
+
+            relationships=data.get("relationships", {}),
+
+            source=data.get("source", {})
+        )
+
+    # -------------------------------------------------------------------------
+
+    def validate(self) -> None:
+        """
+        Perform lightweight validation.
+        """
+
+        process_name = self.metadata.get(
+            "process_name",
+            ""
+        )
+
+        if not process_name.strip():
+
+            raise ValueError(
+                "metadata.process_name cannot be empty."
+            )
+
+    # -------------------------------------------------------------------------
+
+    @property
+    def process_name(self) -> str:
+        """
+        Convenience property.
+        """
+
+        return self.metadata.get(
+            "process_name",
+            ""
+        )
+
+    # -------------------------------------------------------------------------
+
+    def summary(self) -> str:
+        """
+        Return a concise summary.
+        """
+
+        return (
+            f"{self.process_name} | "
+            f"{len(self.activities)} activities | "
+            f"{len(self.actors)} actors | "
+            f"{len(self.systems)} systems"
         )
 
 
@@ -131,20 +187,49 @@ class ProcessModel:
 if __name__ == "__main__":
 
     process = ProcessModel(
-        process_name="Customer Onboarding",
-        description="Open a customer account.",
+
+        metadata={
+            "process_id": "PROC-001",
+            "process_name": "Customer Onboarding",
+            "process_level": 1,
+            "version": "1.0",
+            "status": "Draft",
+            "schema_version": "1.0.0"
+        },
+
+        overview={
+            "description": "Register and activate a customer.",
+            "objective": "Create a valid customer record."
+        },
+
         activities=[
-            "Receive Application",
-            "Verify Identity",
-            "Approve Account",
+            {
+                "activity_id": "ACT-001",
+                "activity_name": "Receive Application",
+                "sequence_number": 1
+            }
         ],
+
+        actors=[
+            {
+                "actor_id": "ACTOR-001",
+                "actor_name": "Customer Service Officer",
+                "actor_type": "Human"
+            }
+        ],
+
+        systems=[
+            "CRM"
+        ]
     )
 
     print("=" * 70)
     print("PROCESS MODEL TEST")
     print("=" * 70)
 
-    print(process)
+    print()
+
+    print(process.summary())
 
     print()
 

@@ -7,19 +7,20 @@ Module:
     response_parser.py
 
 Purpose:
-    Parse and validate responses returned by Large Language Models (LLMs).
+    Parse responses returned by Large Language Models (LLMs).
 
 Responsibilities:
     - Parse JSON responses
+    - Remove Markdown code fences
     - Validate JSON syntax
     - Convert responses into Python dictionaries
-    - Prepare structured data for ProcessModel creation
+    - Provide formatted output for debugging
 
 Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.3.0
 
 Status:
     Development
@@ -31,62 +32,80 @@ Status:
 # =============================================================================
 
 import json
-from typing import Any, Dict
+from typing import Any
+
 
 # =============================================================================
 # Classes
 # =============================================================================
-
 
 class ResponseParser:
     """
     Parse responses returned by an LLM.
     """
 
-    def __init__(self) -> None:
-        """Initialise the Response Parser."""
-        pass
+    # -------------------------------------------------------------------------
 
-    def parse(self, response: str) -> Dict[str, Any]:
+    def parse(
+        self,
+        response: str
+    ) -> dict[str, Any]:
         """
-        Parse a JSON response.
-
-        Parameters
-        ----------
-        response : str
-
-        Returns
-        -------
-        Dict[str, Any]
+        Parse an LLM response into a Python dictionary.
         """
 
-        if not response.strip():
-            raise ValueError("LLM response is empty.")
+        if not response or not response.strip():
+
+            raise ValueError(
+                "LLM returned an empty response."
+            )
+
+        response = response.strip()
+
+        #
+        # Remove Markdown code fences if present.
+        #
+
+        if response.startswith("```json"):
+
+            response = response[7:]
+
+        elif response.startswith("```"):
+
+            response = response[3:]
+
+        if response.endswith("```"):
+
+            response = response[:-3]
+
+        response = response.strip()
 
         try:
-            parsed_response = json.loads(response)
+
+            parsed = json.loads(response)
 
         except json.JSONDecodeError as error:
+
             raise ValueError(
-                f"Invalid JSON returned by the LLM: {error}"
+                f"Invalid JSON returned by the LLM:\n{error}"
             ) from error
 
-        return parsed_response
+        if not isinstance(parsed, dict):
+
+            raise ValueError(
+                "LLM response must be a JSON object."
+            )
+
+        return parsed
+
+    # -------------------------------------------------------------------------
 
     def pretty_print(
         self,
-        parsed_response: Dict[str, Any]
+        parsed_response: dict[str, Any]
     ) -> str:
         """
         Return formatted JSON.
-
-        Parameters
-        ----------
-        parsed_response : Dict[str, Any]
-
-        Returns
-        -------
-        str
         """
 
         return json.dumps(
@@ -95,41 +114,27 @@ class ResponseParser:
             ensure_ascii=False
         )
 
+    # -------------------------------------------------------------------------
+
     def contains_required_field(
         self,
-        parsed_response: Dict[str, Any],
+        parsed_response: dict[str, Any],
         field_name: str
     ) -> bool:
         """
-        Check whether a field exists.
-
-        Parameters
-        ----------
-        parsed_response : Dict[str, Any]
-
-        field_name : str
-
-        Returns
-        -------
-        bool
+        Determine whether a field exists.
         """
 
         return field_name in parsed_response
 
+    # -------------------------------------------------------------------------
+
     def response_summary(
         self,
-        parsed_response: Dict[str, Any]
+        parsed_response: dict[str, Any]
     ) -> str:
         """
-        Return a short summary.
-
-        Parameters
-        ----------
-        parsed_response : Dict[str, Any]
-
-        Returns
-        -------
-        str
+        Return a short response summary.
         """
 
         return (
@@ -144,25 +149,27 @@ class ResponseParser:
 
 if __name__ == "__main__":
 
-    sample_response = """
+    sample = """
+    ```json
     {
         "process_name": "Customer Onboarding",
-        "description": "Registers a new customer.",
         "activities": [
             "Receive Application",
-            "Verify Documents",
-            "Approve Customer"
+            "Verify Identity"
         ]
     }
+    ```
     """
 
     parser = ResponseParser()
 
-    parsed = parser.parse(sample_response)
+    parsed = parser.parse(sample)
 
     print("=" * 70)
-    print("PARSED RESPONSE")
+    print("RESPONSE PARSER TEST")
     print("=" * 70)
+
+    print()
 
     print(parser.pretty_print(parsed))
 

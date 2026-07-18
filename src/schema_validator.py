@@ -7,19 +7,14 @@ Module:
     schema_validator.py
 
 Purpose:
-    Validate enterprise process data against the canonical schema family.
-
-Responsibilities:
-    - Load all enterprise schemas
-    - Build a schema registry
-    - Resolve inter-schema references
-    - Validate extracted process models
+    Validate enterprise process data against the canonical enterprise schema
+    and return a validated ProcessModel.
 
 Author:
     Jeen Labs
 
 Version:
-    0.3.0
+    0.5.0
 
 Status:
     Development
@@ -39,7 +34,14 @@ from typing import Any
 # =============================================================================
 
 import jsonschema
-from referencing import Registry, Resource
+from referencing import Registry
+from referencing import Resource
+
+# =============================================================================
+# Project Imports
+# =============================================================================
+
+from models.process_model import ProcessModel
 
 # =============================================================================
 # Module Constants
@@ -57,14 +59,14 @@ SCHEMA_FILES = [
     "business_rule.schema.json",
 ]
 
+
 # =============================================================================
 # Classes
 # =============================================================================
 
-
 class SchemaValidator:
     """
-    Validate enterprise process models against the canonical schema family.
+    Validate enterprise process models against the canonical schema.
     """
 
     def __init__(self) -> None:
@@ -73,18 +75,18 @@ class SchemaValidator:
 
         self.registry = self._build_registry()
 
-        self.schema = self.schemas[PROCESS_SCHEMA]
-
         self.validator = jsonschema.Draft202012Validator(
-            self.schema,
-            registry=self.registry,
+            self.schemas[PROCESS_SCHEMA],
+            registry=self.registry
         )
 
-    # ---------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    def _load_schemas(self) -> dict[str, dict[str, Any]]:
+    def _load_schemas(
+        self
+    ) -> dict[str, dict[str, Any]]:
         """
-        Load every schema in the schemas folder.
+        Load every schema into memory.
         """
 
         schemas: dict[str, dict[str, Any]] = {}
@@ -99,85 +101,103 @@ class SchemaValidator:
                     f"Schema not found: {path}"
                 )
 
-            with open(path, encoding="utf-8") as file:
+            with path.open(
+                "r",
+                encoding="utf-8"
+            ) as file:
 
                 schemas[filename] = json.load(file)
 
         return schemas
 
-    # ---------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
-    def _build_registry(self) -> Registry:
+    def _build_registry(
+        self
+    ) -> Registry:
         """
-        Build a schema registry for resolving $ref references.
+        Build the JSON Schema registry.
         """
 
         registry = Registry()
 
         for filename, schema in self.schemas.items():
 
-            #
-            # Register by filename because our schemas use:
-            #
-            #     "$ref": "actor.schema.json"
-            #
+            resource = Resource.from_contents(schema)
+
             registry = registry.with_resource(
                 filename,
-                Resource.from_contents(schema)
+                resource
             )
 
-            #
-            # Register by schema ID as well.
-            #
             schema_id = schema.get("$id")
 
             if schema_id:
 
                 registry = registry.with_resource(
                     schema_id,
-                    Resource.from_contents(schema)
+                    resource
                 )
 
         return registry
 
-    # ---------------------------------------------------------------------
+    # -------------------------------------------------------------------------
 
     def validate(
         self,
         process_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    ) -> ProcessModel:
         """
-        Validate extracted process information.
+        Validate a normalized process dictionary and return a ProcessModel.
         """
 
         errors = sorted(
+
             self.validator.iter_errors(process_data),
-            key=lambda error: error.path
+
+            key=lambda error: list(error.path)
         )
 
-        if not errors:
+        if errors:
 
-            return {
-                "valid": True,
-                "errors": []
-            }
+            message = "\n".join(
 
-        return {
-            "valid": False,
-            "errors": [
-                error.message
+                f"- {'/'.join(map(str, error.path))}: {error.message}"
+
+                if error.path
+
+                else f"- {error.message}"
+
                 for error in errors
-            ]
-        }
+            )
 
-    # ---------------------------------------------------------------------
+            raise ValueError(
 
-    def get_schema_names(self) -> list[str]:
+                "Schema validation failed:\n\n"
+
+                f"{message}"
+            )
+
+        process = ProcessModel.from_dictionary(
+            process_data
+        )
+
+        process.validate()
+
+        return process
+
+    # -------------------------------------------------------------------------
+
+    def get_schema_names(
+        self
+    ) -> list[str]:
         """
         Return loaded schema names.
         """
 
-        return list(self.schemas.keys())
+        return sorted(
+            self.schemas.keys()
+        )
 
 
 # =============================================================================
@@ -194,14 +214,6 @@ if __name__ == "__main__":
 
     print()
 
-    print("Loaded Schemas")
-
-    print("-----------------------------")
-
     for schema in validator.get_schema_names():
 
         print(schema)
-
-    print()
-
-    print("Schema registry created successfully.")

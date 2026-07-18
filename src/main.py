@@ -37,6 +37,7 @@ from document_parser import DocumentParser
 from prompt_builder import PromptBuilder
 from llm_client import LLMClient
 from response_parser import ResponseParser
+from response_normalizer import ResponseNormalizer
 from schema_validator import SchemaValidator
 from process_repository import ProcessRepository
 
@@ -59,6 +60,7 @@ class AIProcessAnalyst:
         self.prompt_builder = PromptBuilder()
         self.llm = LLMClient()
         self.response_parser = ResponseParser()
+        self.normalizer = ResponseNormalizer()
         self.validator = SchemaValidator()
         self.repository = ProcessRepository()
 
@@ -175,7 +177,7 @@ class AIProcessAnalyst:
             # Stage 1
             #
 
-            print("[1/8] Loading document...")
+            print("[1/9] Loading document...")
 
             loaded_document = self.loader.load(document)
 
@@ -183,7 +185,7 @@ class AIProcessAnalyst:
             # Stage 2
             #
 
-            print("[2/8] Reading document...")
+            print("[2/9] Reading document...")
 
             document_text = self.reader.read(loaded_document)
 
@@ -191,7 +193,7 @@ class AIProcessAnalyst:
             # Stage 3
             #
 
-            print("[3/8] Parsing document...")
+            print("[3/9] Parsing document...")
 
             parsed_document = self.parser.parse(document_text)
 
@@ -199,7 +201,7 @@ class AIProcessAnalyst:
             # Stage 4
             #
 
-            print("[4/8] Building extraction prompt...")
+            print("[4/9] Building extraction prompt...")
 
             prompt = self.prompt_builder.build_prompt(
                 parsed_document
@@ -209,7 +211,7 @@ class AIProcessAnalyst:
             # Stage 5
             #
 
-            print("[5/8] Calling LLM...")
+            print("[5/9] Calling LLM...")
 
             response = self.llm.generate_response(prompt)
 
@@ -225,9 +227,9 @@ class AIProcessAnalyst:
             # Stage 6
             #
 
-            print("[6/8] Parsing LLM response...")
+            print("[6/9] Parsing LLM response...")
 
-            extracted_process = self.response_parser.parse(
+            parsed_response = self.response_parser.parse(
                 response
             )
 
@@ -235,20 +237,30 @@ class AIProcessAnalyst:
             # Stage 7
             #
 
-            print("[7/8] Validating extracted process...")
+            print("[7/9] Normalizing response...")
 
-            self.validator.validate(
-                extracted_process
+            normalized_response = self.normalizer.normalize(
+                parsed_response
             )
 
             #
             # Stage 8
             #
 
-            print("[8/8] Saving process repository...")
+            print("[8/9] Validating extracted process...")
+
+            process_model = self.validator.validate(
+                normalized_response
+            )
+
+            #
+            # Stage 9
+            #
+
+            print("[9/9] Saving process repository...")
 
             self.repository.save(
-                extracted_process
+                process_model
             )
 
             elapsed = time.perf_counter() - document_start

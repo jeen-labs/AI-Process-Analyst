@@ -7,11 +7,11 @@ Module:
     process_repository.py
 
 Purpose:
-    Store validated enterprise process models.
+    Store validated ProcessModel objects.
 
 Responsibilities:
-    - Store enterprise process models
-    - Retrieve enterprise process models
+    - Store ProcessModel instances
+    - Retrieve ProcessModel instances
     - Maintain an in-memory repository
     - Prepare for future database implementations
 
@@ -19,7 +19,7 @@ Author:
     Jeen Labs
 
 Version:
-    0.2.0
+    0.4.0
 
 Status:
     Development
@@ -27,113 +27,60 @@ Status:
 """
 
 # =============================================================================
-# Standard Library Imports
+# Project Imports
 # =============================================================================
 
-from typing import Any
+from models.process_model import ProcessModel
+
 
 # =============================================================================
 # Classes
 # =============================================================================
 
-
 class ProcessRepository:
     """
     Repository for validated enterprise process models.
 
-    Current implementation:
-        - In-memory dictionary
+    Current implementation
+    ----------------------
+    In-memory dictionary
 
-    Future implementations:
-        - SQLite
-        - PostgreSQL
-        - Neo4j
-        - Azure Cosmos DB
-        - Knowledge Graph
+    Future implementations
+    ----------------------
+    - SQLite
+    - PostgreSQL
+    - Neo4j
+    - Azure Cosmos DB
     """
 
     def __init__(self) -> None:
 
-        self._repository: dict[str, dict[str, Any]] = {}
+        self._repository: dict[str, ProcessModel] = {}
 
     # -------------------------------------------------------------------------
 
     def save(
         self,
-        process: dict[str, Any]
+        process: ProcessModel
     ) -> None:
         """
-        Save a validated enterprise process.
+        Save a ProcessModel.
         """
 
-        metadata = process.get("metadata", {})
+        process.validate()
 
-        process_name = metadata.get("process_name")
-
-        if not process_name:
-
-            raise ValueError(
-                "Process metadata must contain 'process_name'."
-            )
-
-        self._repository[process_name] = process
-
-    
-
-    def save(
-        self,
-        process: dict[str, Any]
-    ) -> None:
-        """
-        Save a validated enterprise process.
-
-        Supports both the legacy schema and the newer
-        process_metadata schema.
-        """
-
-        process_name = None
-
-        #
-        # Preferred schema
-        #
-        if "process_metadata" in process:
-
-            metadata = process["process_metadata"]
-
-            process_name = metadata.get("process_name")
-
-        #
-        # Legacy schema
-        #
-        elif "metadata" in process:
-
-            metadata = process["metadata"]
-
-            process_name = metadata.get("process_name")
-
-        #
-        # Flat schema (backward compatibility)
-        #
-        if not process_name:
-
-            process_name = process.get("process_name")
-
-        if not process_name:
-
-            raise ValueError(
-                "Process must contain 'process_name'."
-            )
-
-        self._repository[process_name] = process
+        self._repository[
+            process.process_name
+        ] = process
 
     # -------------------------------------------------------------------------
 
     def get(
         self,
         process_name: str
-    ) -> dict[str, Any] | None:
+    ) -> ProcessModel | None:
         """
-        Retrieve a process.
+        Retrieve a ProcessModel.
         """
 
         return self._repository.get(process_name)
@@ -175,13 +122,26 @@ class ProcessRepository:
         Return all stored process names.
         """
 
-        return sorted(self._repository.keys())
+        return sorted(
+            self._repository.keys()
+        )
+
+    # -------------------------------------------------------------------------
+
+    def get_all(self) -> list[ProcessModel]:
+        """
+        Return every stored ProcessModel.
+        """
+
+        return list(
+            self._repository.values()
+        )
 
     # -------------------------------------------------------------------------
 
     def count(self) -> int:
         """
-        Number of stored processes.
+        Return repository size.
         """
 
         return len(self._repository)
@@ -204,19 +164,24 @@ if __name__ == "__main__":
 
     repository = ProcessRepository()
 
-    sample_process = {
+    sample = ProcessModel(
 
-        "metadata": {
-
-            "process_name": "Customer Onboarding"
-
+        metadata={
+            "process_id": "PROC-001",
+            "process_name": "Customer Onboarding",
+            "process_level": 1,
+            "version": "1.0",
+            "status": "Draft",
+            "schema_version": "1.0.0"
         },
 
-        "activities": []
+        overview={
+            "description": "Open a customer account.",
+            "objective": "Create a customer."
+        }
+    )
 
-    }
-
-    repository.save(sample_process)
+    repository.save(sample)
 
     print("=" * 70)
     print("PROCESS REPOSITORY TEST")
