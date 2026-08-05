@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_process_model.schema.json",
+  "title": "Enterprise Canonical Process Model",
+  "description": "Root schema for the canonical enterprise process model.",
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["schemaVersion", "modelVersion", "metadata", "process"],
+
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+
+    "modelVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+
+    "metadata": {
+      "$ref": "canonical_metadata.schema.json"
+    },
+
+    "process": {
+      "$ref": "canonical_process.schema.json"
+    },
+
+    "participants": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_participant.schema.json"
+      }
+    },
+
+    "activities": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_activity.schema.json"
+      }
+    },
+
+    "decisions": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_decision.schema.json"
+      }
+    },
+
+    "businessRules": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_business_rule.schema.json"
+      }
+    },
+
+    "dataObjects": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_data_object.schema.json"
+      }
+    },
+
+    "systems": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_system.schema.json"
+      }
+    },
+
+    "relationships": {
+      "type": "array",
+      "default": [],
+      "items": {
+        "$ref": "canonical_relationship.schema.json"
+      }
+    },
+
+    "governance": {
+      "$ref": "canonical_governance.schema.json"
+    },
+
+    "analytics": {
+      "$ref": "canonical_analytics.schema.json"
+    },
+
+    "automation": {
+      "$ref": "canonical_automation.schema.json"
+    },
+
+    "extensions": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

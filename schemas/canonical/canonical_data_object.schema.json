@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_data_object.schema.json",
+
+  "title": "Canonical Data Object",
+
+  "description": "Represents information, documents, records or datasets consumed or produced by business processes.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "objectType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique data object identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "objectType": {
+      "type": "string",
+
+      "enum": [
+        "document",
+        "record",
+        "form",
+        "spreadsheet",
+        "database",
+        "dataset",
+        "report",
+        "image",
+        "email",
+        "apiPayload",
+        "masterData",
+        "transactionData",
+        "file",
+        "other"
+      ]
+    },
+
+    "format": {
+      "type": "string"
+    },
+
+    "sourceSystem": {
+      "type": "string"
+    },
+
+    "owner": {
+      "type": "string"
+    },
+
+    "classification": {
+      "type": "string",
+
+      "enum": ["public", "internal", "confidential", "restricted"]
+    },
+
+    "containsPII": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "retentionPolicy": {
+      "type": "string"
+    },
+
+    "consumedByActivities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "producedByActivities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "validationRules": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_activity.schema.json",
+
+  "title": "Canonical Activity",
+
+  "description": "Canonical representation of an executable activity within a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "activityType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique activity identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "activityType": {
+      "type": "string",
+
+      "enum": [
+        "task",
+        "userTask",
+        "manualTask",
+        "serviceTask",
+        "scriptTask",
+        "businessRuleTask",
+        "callActivity",
+        "subProcess",
+        "event",
+        "gateway"
+      ]
+    },
+
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+
+    "performedBy": {
+      "type": "string",
+      "description": "Participant ID performing this activity."
+    },
+
+    "predecessors": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "successors": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "inputData": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "outputData": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "systems": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "businessRules": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "decisions": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "duration": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "durationUnit": {
+      "type": "string",
+
+      "enum": ["seconds", "minutes", "hours", "days"]
+    },
+
+    "isAutomated": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "isOptional": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "isParallel": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "retryAllowed": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "sla": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "slaUnit": {
+      "type": "string",
+
+      "enum": ["minutes", "hours", "days"]
+    },
+
+    "priority": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

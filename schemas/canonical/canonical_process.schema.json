@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_process.schema.json",
+
+  "title": "Canonical Process",
+
+  "description": "Canonical representation of a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["processId", "name", "status", "lifecycle"],
+
+  "properties": {
+    "processId": {
+      "type": "string",
+      "description": "Unique process identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "purpose": {
+      "type": "string"
+    },
+
+    "scope": {
+      "type": "string"
+    },
+
+    "owner": {
+      "type": "string"
+    },
+
+    "department": {
+      "type": "string"
+    },
+
+    "organization": {
+      "type": "string"
+    },
+
+    "businessDomain": {
+      "type": "string"
+    },
+
+    "status": {
+      "type": "string",
+
+      "enum": ["draft", "validated", "approved", "deprecated", "archived"]
+    },
+
+    "criticality": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "lifecycle": {
+      "type": "string",
+
+      "enum": ["design", "implementation", "production", "retired"]
+    },
+
+    "version": {
+      "type": "string"
+    },
+
+    "category": {
+      "type": "string"
+    },
+
+    "processFamily": {
+      "type": "string"
+    },
+
+    "trigger": {
+      "type": "string"
+    },
+
+    "startEvent": {
+      "type": "string"
+    },
+
+    "endEvent": {
+      "type": "string"
+    },
+
+    "objective": {
+      "type": "string"
+    },
+
+    "tags": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_analytics.schema.json",
+
+  "title": "Canonical Analytics",
+
+  "description": "Business process analytics, KPIs, performance metrics and monitoring information.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "properties": {
+    "kpis": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "object",
+
+        "required": ["name"],
+
+        "additionalProperties": false,
+
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+
+          "description": {
+            "type": "string"
+          },
+
+          "targetValue": {
+            "type": "number"
+          },
+
+          "actualValue": {
+            "type": "number"
+          },
+
+          "unit": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "cycleTime": {
+      "type": "object",
+
+      "additionalProperties": false,
+
+      "properties": {
+        "average": {
+          "type": "number"
+        },
+
+        "minimum": {
+          "type": "number"
+        },
+
+        "maximum": {
+          "type": "number"
+        },
+
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+
+    "throughput": {
+      "type": "object",
+
+      "additionalProperties": false,
+
+      "properties": {
+        "value": {
+          "type": "number"
+        },
+
+        "unit": {
+          "type": "string"
+        }
+      }
+    },
+
+    "sla": {
+      "type": "object",
+
+      "additionalProperties": false,
+
+      "properties": {
+        "target": {
+          "type": "number"
+        },
+
+        "actual": {
+          "type": "number"
+        },
+
+        "unit": {
+          "type": "string"
+        },
+
+        "compliancePercentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+
+    "errorRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+
+    "reworkRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+
+    "automationRate": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+
+    "manualEffortHours": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "costPerExecution": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "annualExecutionVolume": {
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "customerSatisfactionScore": {
+      "type": "number"
+    },
+
+    "bottlenecks": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "recommendations": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "lastCalculated": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

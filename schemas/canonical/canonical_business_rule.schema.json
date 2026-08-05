@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_business_rule.schema.json",
+
+  "title": "Canonical Business Rule",
+
+  "description": "Represents a business rule governing activities, decisions or validations.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "ruleType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique business rule identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "ruleType": {
+      "type": "string",
+
+      "enum": [
+        "validation",
+        "calculation",
+        "approval",
+        "compliance",
+        "eligibility",
+        "routing",
+        "notification",
+        "security",
+        "policy",
+        "regulatory",
+        "custom"
+      ]
+    },
+
+    "expression": {
+      "type": "string",
+      "description": "Business rule expression."
+    },
+
+    "condition": {
+      "type": "string"
+    },
+
+    "result": {
+      "type": "string"
+    },
+
+    "priority": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "severity": {
+      "type": "string",
+
+      "enum": ["info", "warning", "error", "blocking"]
+    },
+
+    "appliesToActivities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "appliesToDecisions": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "source": {
+      "type": "string"
+    },
+
+    "owner": {
+      "type": "string"
+    },
+
+    "version": {
+      "type": "string"
+    },
+
+    "effectiveFrom": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "effectiveTo": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "isMandatory": {
+      "type": "boolean",
+      "default": true
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

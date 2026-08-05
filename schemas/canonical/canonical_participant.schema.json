@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_participant.schema.json",
+
+  "title": "Canonical Participant",
+
+  "description": "Defines a human, organizational unit, external entity or system participating in a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "participantType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique participant identifier."
+    },
+
+    "name": {
+      "type": "string",
+      "description": "Canonical participant name."
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "participantType": {
+      "type": "string",
+
+      "enum": [
+        "person",
+        "role",
+        "team",
+        "department",
+        "organization",
+        "external",
+        "customer",
+        "vendor",
+        "partner",
+        "system",
+        "service",
+        "application"
+      ]
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+
+    "manager": {
+      "type": "string"
+    },
+
+    "organization": {
+      "type": "string"
+    },
+
+    "department": {
+      "type": "string"
+    },
+
+    "roles": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "capabilities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "responsibilities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "raci": {
+      "type": "string",
+
+      "enum": ["Responsible", "Accountable", "Consulted", "Informed"]
+    },
+
+    "isAutomated": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_governance.schema.json",
+
+  "title": "Canonical Governance",
+
+  "description": "Enterprise governance information applicable to a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "properties": {
+    "processOwner": {
+      "type": "string"
+    },
+
+    "businessOwner": {
+      "type": "string"
+    },
+
+    "technicalOwner": {
+      "type": "string"
+    },
+
+    "riskLevel": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "businessCriticality": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "missionCritical"]
+    },
+
+    "complianceFrameworks": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "policies": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "controls": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "object",
+
+        "required": ["id", "name"],
+
+        "additionalProperties": false,
+
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+
+          "name": {
+            "type": "string"
+          },
+
+          "description": {
+            "type": "string"
+          },
+
+          "controlType": {
+            "type": "string",
+
+            "enum": ["preventive", "detective", "corrective"]
+          }
+        }
+      }
+    },
+
+    "risks": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "object",
+
+        "required": ["id", "name"],
+
+        "additionalProperties": false,
+
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+
+          "name": {
+            "type": "string"
+          },
+
+          "description": {
+            "type": "string"
+          },
+
+          "likelihood": {
+            "type": "string",
+
+            "enum": ["low", "medium", "high"]
+          },
+
+          "impact": {
+            "type": "string",
+
+            "enum": ["low", "medium", "high"]
+          }
+        }
+      }
+    },
+
+    "auditRequired": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "lastReviewed": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "reviewFrequency": {
+      "type": "string"
+    },
+
+    "approvers": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "governanceFramework": {
+      "type": "string"
+    },
+
+    "futureGovernanceModules": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string",
+
+        "enum": [
+          "aiGovernance",
+          "agentGovernance",
+          "dataGovernance",
+          "securityGovernance",
+          "privacyGovernance",
+          "modelGovernance"
+        ]
+      }
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_system.schema.json",
+
+  "title": "Canonical System",
+
+  "description": "Represents an application, platform, service, API, or technology participating in a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "systemType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique system identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "systemType": {
+      "type": "string",
+
+      "enum": [
+        "application",
+        "database",
+        "api",
+        "service",
+        "workflowEngine",
+        "erp",
+        "crm",
+        "ecm",
+        "documentManagement",
+        "messaging",
+        "aiModel",
+        "aiAgent",
+        "integrationPlatform",
+        "robot",
+        "externalSystem",
+        "other"
+      ]
+    },
+
+    "vendor": {
+      "type": "string"
+    },
+
+    "product": {
+      "type": "string"
+    },
+
+    "version": {
+      "type": "string"
+    },
+
+    "owner": {
+      "type": "string"
+    },
+
+    "environment": {
+      "type": "string",
+
+      "enum": ["development", "test", "staging", "production"]
+    },
+
+    "criticality": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "critical"]
+    },
+
+    "availability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+
+    "activities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "interfaces": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "dataObjects": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "authentication": {
+      "type": "string"
+    },
+
+    "supportsAutomation": {
+      "type": "boolean",
+      "default": true
+    },
+
+    "supportsAI": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_metadata.schema.json",
+
+  "title": "Canonical Metadata",
+
+  "description": "Metadata describing the source and lifecycle of the canonical process model.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": [
+    "id",
+    "createdAt",
+    "updatedAt",
+    "createdBy",
+    "provider",
+    "sourceType"
+  ],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Globally unique identifier."
+    },
+
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "createdBy": {
+      "type": "string"
+    },
+
+    "provider": {
+      "type": "string",
+
+      "enum": [
+        "openai",
+        "gemini",
+        "anthropic",
+        "azure-openai",
+        "ollama",
+        "mock",
+        "manual"
+      ]
+    },
+
+    "model": {
+      "type": "string"
+    },
+
+    "providerVersion": {
+      "type": "string"
+    },
+
+    "sourceType": {
+      "type": "string",
+
+      "enum": [
+        "pdf",
+        "docx",
+        "pptx",
+        "xlsx",
+        "txt",
+        "html",
+        "markdown",
+        "image",
+        "json",
+        "api",
+        "manual"
+      ]
+    },
+
+    "sourceName": {
+      "type": "string"
+    },
+
+    "sourceHash": {
+      "type": "string"
+    },
+
+    "language": {
+      "type": "string",
+      "default": "en"
+    },
+
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+
+    "processingTimeMs": {
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "warnings": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "notes": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_decision.schema.json",
+
+  "title": "Canonical Decision",
+
+  "description": "Represents a decision point or gateway within a business process.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "name", "decisionType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique decision identifier."
+    },
+
+    "name": {
+      "type": "string"
+    },
+
+    "displayName": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "decisionType": {
+      "type": "string",
+
+      "enum": ["exclusive", "inclusive", "parallel", "eventBased", "complex"]
+    },
+
+    "condition": {
+      "type": "string"
+    },
+
+    "expression": {
+      "type": "string"
+    },
+
+    "performedBy": {
+      "type": "string"
+    },
+
+    "incomingActivities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "outgoingActivities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "defaultPath": {
+      "type": "string"
+    },
+
+    "possibleOutcomes": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "object",
+
+        "required": ["label", "targetActivity"],
+
+        "additionalProperties": false,
+
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+
+          "condition": {
+            "type": "string"
+          },
+
+          "targetActivity": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "businessRules": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_relationship.schema.json",
+
+  "title": "Canonical Relationship",
+
+  "description": "Represents a relationship between any two entities in the canonical enterprise process model.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "required": ["id", "sourceId", "targetId", "relationshipType"],
+
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique relationship identifier."
+    },
+
+    "sourceId": {
+      "type": "string",
+      "description": "Source entity identifier."
+    },
+
+    "targetId": {
+      "type": "string",
+      "description": "Target entity identifier."
+    },
+
+    "sourceType": {
+      "type": "string",
+
+      "enum": [
+        "process",
+        "participant",
+        "activity",
+        "decision",
+        "businessRule",
+        "dataObject",
+        "system",
+        "governance",
+        "analytics",
+        "automation"
+      ]
+    },
+
+    "targetType": {
+      "type": "string",
+
+      "enum": [
+        "process",
+        "participant",
+        "activity",
+        "decision",
+        "businessRule",
+        "dataObject",
+        "system",
+        "governance",
+        "analytics",
+        "automation"
+      ]
+    },
+
+    "relationshipType": {
+      "type": "string",
+
+      "enum": [
+        "precedes",
+        "follows",
+        "performs",
+        "uses",
+        "produces",
+        "consumes",
+        "governs",
+        "controls",
+        "dependsOn",
+        "calls",
+        "contains",
+        "references",
+        "triggers",
+        "owns",
+        "reportsTo",
+        "implements",
+        "supports",
+        "integratesWith",
+        "validates",
+        "monitors",
+        "other"
+      ]
+    },
+
+    "direction": {
+      "type": "string",
+
+      "enum": ["unidirectional", "bidirectional"],
+
+      "default": "unidirectional"
+    },
+
+    "strength": {
+      "type": "string",
+
+      "enum": ["weak", "medium", "strong"],
+
+      "default": "medium"
+    },
+
+    "condition": {
+      "type": "string"
+    },
+
+    "description": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}

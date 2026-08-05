@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "$id": "https://jeen-labs.github.io/ai-process-analyst/schema/canonical/canonical_automation.schema.json",
+
+  "title": "Canonical Automation",
+
+  "description": "Automation opportunities, AI recommendations, RPA suitability and transformation insights.",
+
+  "type": "object",
+
+  "additionalProperties": false,
+
+  "properties": {
+    "automationLevel": {
+      "type": "string",
+
+      "enum": ["manual", "assisted", "semiAutomated", "fullyAutomated"]
+    },
+
+    "automationPotential": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "veryHigh"]
+    },
+
+    "rpaCandidate": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "aiCandidate": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "agentCandidate": {
+      "type": "boolean",
+      "default": false
+    },
+
+    "humanInLoopRequired": {
+      "type": "boolean",
+      "default": true
+    },
+
+    "automationOpportunities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "object",
+
+        "required": ["title"],
+
+        "additionalProperties": false,
+
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+
+          "description": {
+            "type": "string"
+          },
+
+          "priority": {
+            "type": "string",
+
+            "enum": ["low", "medium", "high", "critical"]
+          },
+
+          "estimatedBenefit": {
+            "type": "string"
+          }
+        }
+      }
+    },
+
+    "aiRecommendations": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "recommendedTechnologies": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "estimatedTimeSavingsHours": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "estimatedCostSavings": {
+      "type": "number",
+      "minimum": 0
+    },
+
+    "estimatedROI": {
+      "type": "number"
+    },
+
+    "implementationComplexity": {
+      "type": "string",
+
+      "enum": ["low", "medium", "high", "veryHigh"]
+    },
+
+    "automationRisks": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "prerequisites": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "futureCapabilities": {
+      "type": "array",
+
+      "default": [],
+
+      "items": {
+        "type": "string",
+
+        "enum": [
+          "rpa",
+          "copilot",
+          "agenticAI",
+          "predictiveAnalytics",
+          "processMining",
+          "decisionAutomation",
+          "intelligentDocumentProcessing",
+          "knowledgeGraph",
+          "digitalTwin",
+          "multiAgentWorkflow"
+        ]
+      }
+    },
+
+    "notes": {
+      "type": "string"
+    },
+
+    "attributes": {
+      "type": "object",
+      "default": {}
+    }
+  }
+}
