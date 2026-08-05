@@ -13,19 +13,24 @@
 
   "properties": {
     "actor_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^ACTOR-[0-9]{3}$",
+      "description": "Unique identifier for the actor."
     },
 
     "actor_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Human-readable name of the actor."
     },
 
     "actor_description": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional description of the actor's purpose or responsibilities."
     },
 
     "actor_type": {
       "type": "string",
+      "description": "Classification of the actor.",
 
       "enum": [
         "Human",
@@ -39,23 +44,29 @@
     },
 
     "department": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Department to which the actor belongs."
     },
 
     "role": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Business role performed by the actor."
     },
 
     "email": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "format": "email",
+      "description": "Contact email address of the actor."
     },
 
     "organisation": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Organization or external company associated with the actor."
     },
 
     "responsibilities": {
       "type": "array",
+      "description": "Primary responsibilities performed by the actor.",
 
       "items": {
         "type": "string"
@@ -64,6 +75,7 @@
 
     "systems_used": {
       "type": "array",
+      "description": "Systems typically used by the actor while executing the process.",
 
       "items": {
         "type": "string"
@@ -71,11 +83,13 @@
     },
 
     "is_process_owner": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Indicates whether the actor owns the overall business process."
     },
 
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional implementation or business notes."
     }
   },
 

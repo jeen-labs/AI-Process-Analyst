@@ -507,27 +507,50 @@ class ResponseNormalizer:
     # -------------------------------------------------------------------------
 
     def _normalize_activities(
-        self,
-        activities: Any
+    self,
+    activities: Any
     ) -> list[dict[str, Any]]:
         """
-        Normalize activities into the enterprise schema.
+        Normalize enterprise activities into the canonical schema.
         """
 
-        if not isinstance(activities, list):
+        if not isinstance(
+            activities,
+            list
+        ):
+
             return []
 
         normalized = []
 
-        for index, activity in enumerate(activities, start=1):
+        for index, activity in enumerate(
+            activities,
+            start=1
+        ):
 
-            if isinstance(activity, str):
+            #
+            # Support simple activity names.
+            #
+
+            if isinstance(
+                activity,
+                str
+            ):
+
                 activity = {
-                    "activity_name": activity
+                    "name": activity
                 }
 
-            if not isinstance(activity, dict):
+            if not isinstance(
+                activity,
+                dict
+            ):
+
                 continue
+
+            #
+            # Sequence
+            #
 
             sequence = activity.get(
                 "sequence_number",
@@ -535,88 +558,298 @@ class ResponseNormalizer:
                     "sequence",
                     activity.get(
                         "step_number",
-                        index
+                        activity.get(
+                            "step",
+                            index
+                        )
                     )
                 )
             )
 
-            name = activity.get(
+            try:
+
+                sequence = int(sequence)
+
+            except Exception:
+
+                sequence = index
+
+            #
+            # Activity Name
+            #
+
+            activity_name = activity.get(
                 "activity_name",
                 activity.get(
                     "name",
-                    f"Activity {index}"
+                    f"Activity {sequence}"
                 )
             )
 
-            description = activity.get(
-                "activity_description",
-                activity.get(
-                    "description",
-                    ""
-                )
-            )
+            #
+            # Activity Type
+            #
 
             activity_type = activity.get(
                 "activity_type",
                 "Task"
             )
 
-            normalized.append({
+            #
+            # Some LLMs misuse "phase".
+            # Preserve it as a note instead.
+            #
 
-                "activity_id": f"ACT-{index:03d}",
+            phase = activity.get(
+                "phase"
+            )
 
-                "activity_name": str(name),
+            normalized_activity = {
 
-                "activity_description": str(description),
+                "activity_id":
+                    f"ACT-{sequence:03d}",
 
-                "activity_type": str(activity_type),
+                "activity_name":
+                    str(activity_name),
 
-                "sequence_number": int(sequence),
+                "activity_type":
+                    str(activity_type),
 
-                "actor_id": activity.get("actor_id"),
+                "sequence_number":
+                    sequence,
+            }
 
-                "system_id": activity.get("system_id"),
+            #
+            # Description
+            #
 
-                "input_documents": activity.get(
-                    "input_documents",
+            description = activity.get(
+                "activity_description",
+                activity.get(
+                    "description"
+                )
+            )
+
+            if description:
+
+                normalized_activity[
+                    "activity_description"
+                ] = str(description)
+
+            #
+            # Actor Reference
+            #
+
+            actor = (
+                activity.get("actor_id")
+                or activity.get("performed_by")
+                or activity.get("actors")
+            )
+
+            if isinstance(
+                actor,
+                list
+            ) and actor:
+
+                normalized_activity[
+                    "actor_id"
+                ] = str(actor[0])
+
+            elif isinstance(
+                actor,
+                str
+            ):
+
+                normalized_activity[
+                    "actor_id"
+                ] = actor
+
+            #
+            # Systems
+            #
+
+            systems = activity.get(
+                "systems",
+                []
+            )
+
+            if isinstance(
+                systems,
+                list
+            ) and systems:
+
+                normalized_activity[
+                    "system_id"
+                ] = str(systems[0])
+
+            #
+            # Documents
+            #
+
+            inputs = activity.get(
+                "input_documents",
+                activity.get(
+                    "inputs",
                     []
-                ),
+                )
+            )
 
-                "output_documents": activity.get(
-                    "output_documents",
+            if isinstance(
+                inputs,
+                list
+            ):
+
+                normalized_activity[
+                    "input_documents"
+                ] = [
+
+                    str(item)
+
+                    for item in inputs
+                ]
+
+            outputs = activity.get(
+                "output_documents",
+                activity.get(
+                    "outputs",
                     []
-                ),
+                )
+            )
 
-                "business_rule_ids": activity.get(
-                    "business_rule_ids",
+            if isinstance(
+                outputs,
+                list
+            ):
+
+                normalized_activity[
+                    "output_documents"
+                ] = [
+
+                    str(item)
+
+                    for item in outputs
+                ]
+
+            #
+            # Business Rule References
+            #
+
+            rules = activity.get(
+                "business_rule_ids",
+                activity.get(
+                    "business_rules",
                     []
-                ),
+                )
+            )
 
-                "next_activity": activity.get(
+            if isinstance(
+                rules,
+                list
+            ):
+
+                normalized_activity[
+                    "business_rule_ids"
+                ] = [
+
+                    str(rule)
+
+                    for rule in rules
+                ]
+
+            #
+            # Navigation
+            #
+
+            next_activity = activity.get(
+                "next_activity"
+            )
+
+            if next_activity:
+
+                normalized_activity[
                     "next_activity"
-                ),
+                ] = str(next_activity)
 
-                "exception_flow": activity.get(
+            exception_flow = activity.get(
+                "exception_flow"
+            )
+
+            if exception_flow:
+
+                normalized_activity[
                     "exception_flow"
-                ),
+                ] = str(exception_flow)
 
-                "estimated_duration": activity.get(
+            #
+            # Duration
+            #
+
+            duration = activity.get(
+                "estimated_duration",
+                activity.get(
+                    "duration"
+                )
+            )
+
+            if duration:
+
+                normalized_activity[
                     "estimated_duration"
-                ),
+                ] = str(duration)
 
-                "automation_candidate": activity.get(
-                    "automation_candidate",
-                    False
-                ),
+            #
+            # Automation Candidate
+            #
 
-                "notes": activity.get(
-                    "notes",
-                    ""
+            automation = activity.get(
+                "automation_candidate"
+            )
+
+            if isinstance(
+                automation,
+                bool
+            ):
+
+                normalized_activity[
+                    "automation_candidate"
+                ] = automation
+
+            #
+            # Notes
+            #
+
+            notes = []
+
+            if phase:
+
+                notes.append(
+                    f"Phase: {phase}"
                 )
 
-            })
+            details = activity.get(
+                "details"
+            )
+
+            if details:
+
+                notes.append(
+                    str(details)
+                )
+
+            if notes:
+
+                normalized_activity[
+                    "notes"
+                ] = "\n".join(
+                    notes
+                )
+
+            normalized.append(
+                normalized_activity
+            )
 
         return normalized
+   
 
     # -------------------------------------------------------------------------
 
@@ -699,105 +932,498 @@ class ResponseNormalizer:
     # -------------------------------------------------------------------------
 
     def _normalize_decisions(
-        self,
-        decisions: Any
+    self,
+    decisions: Any
     ) -> list[dict[str, Any]]:
         """
-        Normalize decision points.
+        Normalize enterprise decision points into the canonical schema.
         """
 
-        if not isinstance(decisions, list):
+        if not isinstance(
+            decisions,
+            list
+        ):
+
             return []
 
         normalized = []
 
-        for index, decision in enumerate(decisions, start=1):
+        for index, decision in enumerate(
+            decisions,
+            start=1
+        ):
 
-            if not isinstance(decision, dict):
+            #
+            # Ignore invalid objects.
+            #
+
+            if not isinstance(
+                decision,
+                dict
+            ):
+
                 continue
 
-            question = decision.get(
+            #
+            # Decision Name
+            #
+
+            decision_name = decision.get(
+                "decision_name",
+                decision.get(
+                    "name",
+                    decision.get(
+                        "decision",
+                        f"Decision {index}"
+                    )
+                )
+            )
+
+            #
+            # Decision Question
+            #
+
+            decision_question = decision.get(
                 "decision_question",
                 decision.get(
-                    "condition",
+                    "question",
                     decision.get(
-                        "question",
+                        "condition",
                         "Decision?"
                     )
                 )
             )
 
-            name = decision.get(
-                "decision_name",
+            #
+            # Decision Type
+            #
+
+            decision_type = decision.get(
+                "decision_type",
+                "Exclusive"
+            )
+
+            normalized_decision = {
+
+                "decision_id":
+                    f"DEC-{index:03d}",
+
+                "decision_name":
+                    str(decision_name),
+
+                "decision_question":
+                    str(decision_question),
+
+                "decision_type":
+                    str(decision_type)
+            }
+
+            #
+            # Description
+            #
+
+            description = decision.get(
+                "description"
+            )
+
+            if description:
+
+                normalized_decision[
+                    "decision_description"
+                ] = str(description)
+
+            #
+            # Criteria
+            #
+
+            criteria = decision.get(
+                "criteria"
+            )
+
+            if isinstance(criteria, list):
+
+                normalized_decision["decision_criteria"] = [
+                    str(item)
+                    for item in criteria
+                ]
+
+            elif criteria:
+
+                normalized_decision["decision_criteria"] = [
+                    str(criteria)
+                ]
+
+            #
+            # Incoming Activity
+            #
+
+            incoming = decision.get(
+                "incoming_activity"
+            )
+
+            if incoming:
+
+                normalized_decision[
+                    "incoming_activity"
+                ] = str(incoming)
+
+            #
+            # Default Path
+            #
+
+            default_path = decision.get(
+                "default_path"
+            )
+
+            if default_path:
+
+                normalized_decision[
+                    "default_path"
+                ] = str(default_path)
+
+            #
+            # Actor Reference
+            #
+
+            actors = (
+                decision.get("actors")
+                or decision.get("performed_by")
+                or decision.get("actor")
+            )
+
+            if isinstance(
+                actors,
+                list
+            ) and actors:
+
+                normalized_decision[
+                    "actor_id"
+                ] = str(actors[0])
+
+            elif isinstance(
+                actors,
+                str
+            ):
+
+                normalized_decision[
+                    "actor_id"
+                ] = actors
+
+            #
+            # System Reference
+            #
+
+            systems = decision.get(
+                "systems",
+                []
+            )
+
+            if isinstance(
+                systems,
+                list
+            ) and systems:
+
+                normalized_decision[
+                    "system_id"
+                ] = str(systems[0])
+
+            #
+            # Business Rules
+            #
+
+            rules = decision.get(
+                "business_rule_ids",
                 decision.get(
-                    "name",
-                    f"Decision {index}"
+                    "business_rules",
+                    []
                 )
             )
 
-            outgoing_paths = []
+            if isinstance(
+                rules,
+                list
+            ):
 
-            if "outgoing_paths" in decision:
+                normalized_decision[
+                    "business_rule_ids"
+                ] = [
 
-                outgoing_paths = decision["outgoing_paths"]
+                    str(rule)
 
-            else:
-
-                true_path = decision.get(
-                    "outcome_true",
-                    "Next Activity"
-                )
-
-                false_path = decision.get(
-                    "outcome_false",
-                    "End"
-                )
-
-                outgoing_paths = [
-
-                    {
-                        "condition": "Yes",
-                        "next_activity": str(true_path),
-                        "business_rule_id": None
-                    },
-
-                    {
-                        "condition": "No",
-                        "next_activity": str(false_path),
-                        "business_rule_id": None
-                    }
+                    for rule in rules
 
                 ]
 
-            normalized.append({
+            #
+            # Build outgoing paths.
+            #
 
-                "decision_id": f"DEC-{index:03d}",
+            outgoing_paths = []
 
-                "decision_name": str(name),
+            #
+            # Canonical structure
+            #
 
-                "decision_question": str(question),
+            if isinstance(
+                decision.get("outgoing_paths"),
+                list
+            ):
 
-                "decision_type": decision.get(
-                    "decision_type",
-                    "Exclusive"
-                ),
+                for path in decision["outgoing_paths"]:
 
-                "incoming_activity": decision.get(
-                    "incoming_activity"
-                ),
+                    if not isinstance(
+                        path,
+                        dict
+                    ):
 
-                "outgoing_paths": outgoing_paths,
+                        continue
 
-                "default_path": decision.get(
-                    "default_path"
-                ),
+                    outgoing_paths.append({
 
-                "notes": decision.get(
-                    "notes",
-                    ""
+                        "condition":
+                            str(
+                                path.get(
+                                    "condition",
+                                    "Unknown"
+                                )
+                            ),
+
+                        "next_activity":
+                            str(
+                                path.get(
+                                    "next_activity",
+                                    path.get(
+                                        "outcome",
+                                        ""
+                                    )
+                                )
+                            ),
+
+                        "business_rule_id":
+                            path.get(
+                                "business_rule_id"
+                            )
+
+                    })
+
+            #
+            # Generic options
+            #
+
+            elif isinstance(
+                decision.get("options"),
+                list
+            ):
+
+                for option in decision["options"]:
+
+                    if not isinstance(
+                        option,
+                        dict
+                    ):
+
+                        continue
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            str(
+                                option.get(
+                                    "condition",
+                                    "Unknown"
+                                )
+                            ),
+
+                        "next_activity":
+                            str(
+                                option.get(
+                                    "outcome",
+                                    ""
+                                )
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+            #
+            # Yes / No
+            #
+
+            elif (
+
+                "yes_path" in decision
+                or
+                "no_path" in decision
+
+            ):
+
+                if decision.get("yes_path"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "Yes",
+
+                        "next_activity":
+                            str(
+                                decision["yes_path"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+                if decision.get("no_path"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "No",
+
+                        "next_activity":
+                            str(
+                                decision["no_path"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+            #
+            # Pass / Fail
+            #
+
+            elif (
+
+                "pass_path" in decision
+                or
+                "fail_path" in decision
+
+            ):
+
+                if decision.get("pass_path"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "Pass",
+
+                        "next_activity":
+                            str(
+                                decision["pass_path"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+                if decision.get("fail_path"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "Fail",
+
+                        "next_activity":
+                            str(
+                                decision["fail_path"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+            #
+            # True / False
+            #
+
+            elif (
+
+                "outcome_true" in decision
+                or
+                "outcome_false" in decision
+
+            ):
+
+                if decision.get("outcome_true"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "True",
+
+                        "next_activity":
+                            str(
+                                decision["outcome_true"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+                if decision.get("outcome_false"):
+
+                    outgoing_paths.append({
+
+                        "condition":
+                            "False",
+
+                        "next_activity":
+                            str(
+                                decision["outcome_false"]
+                            ),
+
+                        "business_rule_id":
+                            None
+
+                    })
+
+            if outgoing_paths:
+
+                normalized_decision[
+                    "outgoing_paths"
+                ] = outgoing_paths
+
+            #
+            # Notes
+            #
+
+            notes = []
+
+            for field in (
+
+                "details",
+                "notes",
+                "comments"
+
+            ):
+
+                value = decision.get(field)
+
+                if value:
+
+                    notes.append(
+                        str(value)
+                    )
+
+            if notes:
+
+                normalized_decision[
+                    "notes"
+                ] = "\n".join(
+                    notes
                 )
 
-            })
+            normalized.append(
+                normalized_decision
+            )
 
         return normalized
 

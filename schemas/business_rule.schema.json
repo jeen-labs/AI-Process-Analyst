@@ -13,19 +13,24 @@
 
   "properties": {
     "rule_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^RULE-[0-9]{3}$",
+      "description": "Unique identifier for the business rule."
     },
 
     "rule_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Human-readable name of the business rule."
     },
 
     "rule_description": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional explanation of the business rule."
     },
 
     "rule_type": {
       "type": "string",
+      "description": "Classification of the business rule.",
 
       "enum": [
         "Validation",
@@ -51,16 +56,18 @@
     },
 
     "rule_statement": {
-      "type": "string"
+      "type": "string",
+      "description": "The rule expressed as a business statement."
     },
 
     "source_reference": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Reference to the policy, regulation, or document that defines the rule."
     },
 
     "applies_to_activities": {
       "type": "array",
-
+      "description": "Activities governed by this business rule.",
       "items": {
         "type": "string"
       }
@@ -68,7 +75,7 @@
 
     "related_decisions": {
       "type": "array",
-
+      "description": "Decision points associated with this rule.",
       "items": {
         "type": "string"
       }
@@ -76,32 +83,41 @@
 
     "priority": {
       "type": "string",
+      "description": "Business importance of the rule.",
 
       "enum": ["Low", "Medium", "High", "Critical"]
     },
 
     "mandatory": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Whether compliance with the rule is mandatory."
     },
 
     "automatable": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Whether the rule can be enforced automatically."
     },
 
     "owner": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Business owner responsible for the rule."
     },
 
     "effective_date": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Date the rule becomes effective."
     },
 
     "review_date": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "Scheduled review date for the rule."
     },
 
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional implementation notes."
     }
   },
 

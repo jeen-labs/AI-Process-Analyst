@@ -18,19 +18,24 @@
 
   "properties": {
     "activity_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^ACT-[0-9]{3}$",
+      "description": "Unique identifier for the activity."
     },
 
     "activity_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Human-readable name of the activity."
     },
 
     "activity_description": {
-      "type": "string"
+      "type": "string",
+      "description": "Detailed description of the activity."
     },
 
     "activity_type": {
       "type": "string",
+      "description": "Classification of the activity.",
 
       "enum": [
         "Start",
@@ -47,19 +52,23 @@
 
     "sequence_number": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "description": "Execution order of the activity within the process."
     },
 
     "actor_id": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Identifier of the actor responsible for performing the activity."
     },
 
     "system_id": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Identifier of the primary system supporting the activity."
     },
 
     "input_documents": {
       "type": "array",
+      "description": "Documents or information required before the activity begins.",
 
       "items": {
         "type": "string"
@@ -68,6 +77,7 @@
 
     "output_documents": {
       "type": "array",
+      "description": "Documents or information produced by the activity.",
 
       "items": {
         "type": "string"
@@ -76,6 +86,7 @@
 
     "business_rule_ids": {
       "type": "array",
+      "description": "Business rules governing execution of the activity.",
 
       "items": {
         "type": "string"
@@ -83,23 +94,28 @@
     },
 
     "next_activity": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Identifier of the next activity in the normal process flow."
     },
 
     "exception_flow": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Alternative flow followed when an exception occurs."
     },
 
     "estimated_duration": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Estimated duration required to complete the activity."
     },
 
     "automation_candidate": {
-      "type": "boolean"
+      "type": "boolean",
+      "description": "Indicates whether the activity is a potential candidate for automation."
     },
 
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional implementation or process notes."
     }
   },
 

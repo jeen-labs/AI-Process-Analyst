@@ -15,6 +15,8 @@
     "metadata": {
       "type": "object",
 
+      "description": "Core identifying information for the business process.",
+
       "required": [
         "process_id",
         "process_name",
@@ -26,49 +28,63 @@
 
       "properties": {
         "process_id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^PROC-.+",
+          "description": "Unique identifier for the process."
         },
 
         "process_name": {
-          "type": "string"
+          "type": "string",
+          "description": "Human-readable name of the process."
         },
 
         "parent_process": {
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "description": "Identifier of the parent process, if applicable."
         },
 
         "previous_process": {
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "description": "Identifier of the preceding process."
         },
 
         "next_process": {
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "description": "Identifier of the succeeding process."
         },
 
         "process_level": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "description": "Hierarchy level of the process."
         },
 
         "version": {
-          "type": "string"
+          "type": "string",
+          "description": "Business version of the process."
         },
 
         "status": {
           "type": "string",
+          "description": "Current lifecycle status of the process.",
+
           "enum": ["Draft", "Active", "Retired"]
         },
 
         "created_by": {
-          "type": "string"
+          "type": "string",
+          "description": "Author or system that created the process definition."
         },
 
         "created_on": {
-          "type": "string"
+          "type": "string",
+          "format": "date",
+          "description": "Date the process definition was created."
         },
 
         "schema_version": {
-          "type": "string"
+          "type": "string",
+          "description": "Canonical schema version used for validation."
         }
       },
 
@@ -78,25 +94,32 @@
     "overview": {
       "type": "object",
 
+      "description": "Business overview of the process.",
+
       "properties": {
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "Summary description of the process."
         },
 
         "objective": {
-          "type": "string"
+          "type": "string",
+          "description": "Primary business objective of the process."
         },
 
         "scope": {
-          "type": "string"
+          "type": "string",
+          "description": "Business scope covered by the process."
         },
 
         "trigger": {
-          "type": "string"
+          "type": "string",
+          "description": "Event that initiates the process."
         },
 
         "end_condition": {
-          "type": "string"
+          "type": "string",
+          "description": "Condition that signifies successful completion."
         }
       },
 
@@ -106,6 +129,8 @@
     "actors": {
       "type": "array",
 
+      "description": "Actors participating in the process.",
+
       "items": {
         "$ref": "actor.schema.json"
       }
@@ -113,6 +138,8 @@
 
     "systems": {
       "type": "array",
+
+      "description": "Systems supporting the process.",
 
       "items": {
         "type": "string"
@@ -122,6 +149,8 @@
     "documents": {
       "type": "array",
 
+      "description": "Business documents referenced by the process.",
+
       "items": {
         "type": "string"
       }
@@ -129,6 +158,8 @@
 
     "inputs": {
       "type": "array",
+
+      "description": "Inputs required by the process.",
 
       "items": {
         "type": "string"
@@ -138,6 +169,8 @@
     "outputs": {
       "type": "array",
 
+      "description": "Outputs produced by the process.",
+
       "items": {
         "type": "string"
       }
@@ -145,6 +178,8 @@
 
     "activities": {
       "type": "array",
+
+      "description": "Activities executed within the process.",
 
       "items": {
         "$ref": "activity.schema.json"
@@ -154,6 +189,8 @@
     "decisions": {
       "type": "array",
 
+      "description": "Decision points within the process.",
+
       "items": {
         "$ref": "decision.schema.json"
       }
@@ -161,6 +198,8 @@
 
     "business_rules": {
       "type": "array",
+
+      "description": "Business rules governing the process.",
 
       "items": {
         "$ref": "business_rule.schema.json"
@@ -170,6 +209,8 @@
     "risks": {
       "type": "array",
 
+      "description": "Business risks associated with the process.",
+
       "items": {
         "type": "string"
       }
@@ -177,6 +218,8 @@
 
     "controls": {
       "type": "array",
+
+      "description": "Business controls mitigating identified risks.",
 
       "items": {
         "type": "string"
@@ -186,6 +229,8 @@
     "kpis": {
       "type": "array",
 
+      "description": "Key performance indicators used to measure the process.",
+
       "items": {
         "type": "string"
       }
@@ -194,17 +239,23 @@
     "relationships": {
       "type": "object",
 
+      "description": "Relationships with other enterprise processes.",
+
       "properties": {
         "previous_process": {
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "description": "Identifier of the preceding process."
         },
 
         "next_process": {
-          "type": ["string", "null"]
+          "type": ["string", "null"],
+          "description": "Identifier of the succeeding process."
         },
 
         "subprocesses": {
           "type": "array",
+
+          "description": "Subprocesses belonging to this process.",
 
           "items": {
             "type": "string"
@@ -218,17 +269,23 @@
     "source": {
       "type": "object",
 
+      "description": "Source document metadata used during extraction.",
+
       "properties": {
         "document_name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the source document."
         },
 
         "document_type": {
-          "type": "string"
+          "type": "string",
+          "description": "Type of source document."
         },
 
         "page_numbers": {
           "type": "array",
+
+          "description": "Pages from which information was extracted.",
 
           "items": {
             "type": "integer"
@@ -237,10 +294,9 @@
 
         "confidence_score": {
           "type": "number",
-
           "minimum": 0,
-
-          "maximum": 1
+          "maximum": 1,
+          "description": "Overall confidence score assigned to the extracted process."
         }
       },
 

@@ -13,33 +13,41 @@
 
   "properties": {
     "decision_id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^DEC-[0-9]{3}$",
+      "description": "Unique identifier for the decision."
     },
 
     "decision_name": {
-      "type": "string"
+      "type": "string",
+      "description": "Human-readable name of the decision."
     },
 
     "decision_description": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional explanation of the decision point."
     },
 
     "decision_question": {
-      "type": "string"
+      "type": "string",
+      "description": "Business question that must be answered at the decision point."
     },
 
     "decision_type": {
       "type": "string",
+      "description": "Classification of the decision.",
 
       "enum": ["Exclusive", "Inclusive", "Parallel", "Event", "Manual"]
     },
 
     "incoming_activity": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Identifier of the activity immediately preceding this decision."
     },
 
     "outgoing_paths": {
       "type": "array",
+      "description": "Possible outcomes and routing paths from the decision.",
 
       "items": {
         "type": "object",
@@ -48,15 +56,18 @@
 
         "properties": {
           "condition": {
-            "type": "string"
+            "type": "string",
+            "description": "Condition that determines whether this path is taken."
           },
 
           "next_activity": {
-            "type": "string"
+            "type": "string",
+            "description": "Identifier of the next activity if the condition is satisfied."
           },
 
           "business_rule_id": {
-            "type": ["string", "null"]
+            "type": ["string", "null"],
+            "description": "Business rule governing this routing decision."
           }
         },
 
@@ -65,11 +76,67 @@
     },
 
     "default_path": {
-      "type": ["string", "null"]
+      "type": ["string", "null"],
+      "description": "Fallback activity if no decision condition matches."
     },
 
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "Additional implementation or business notes."
+    },
+
+    "business_rule_ids": {
+      "type": "array",
+      "description": "Business rules referenced by this decision.",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "decision_owner": {
+      "type": ["string", "null"],
+      "description": "Business owner responsible for this decision."
+    },
+
+    "decision_criteria": {
+      "type": "array",
+      "description": "Criteria used when evaluating the decision.",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "supporting_systems": {
+      "type": "array",
+      "description": "Systems that assist in evaluating or executing the decision.",
+
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "risk_level": {
+      "type": ["string", "null"],
+      "description": "Business risk associated with the decision.",
+
+      "enum": ["Low", "Medium", "High", "Critical", null]
+    },
+
+    "automation_candidate": {
+      "type": ["boolean", "null"],
+      "description": "Indicates whether the decision is a candidate for automation."
+    },
+
+    "escalation_path": {
+      "type": ["string", "null"],
+      "description": "Escalation route when the decision cannot be completed."
+    },
+
+    "sla": {
+      "type": ["string", "null"],
+      "description": "Expected service level or turnaround time for completing the decision."
     }
   },
 
