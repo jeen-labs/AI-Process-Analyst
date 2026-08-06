@@ -3,7 +3,7 @@
 Enterprise Ontology Engine
 ===============================================================================
 
-Adds business meaning to canonical process activities.
+Classifies every activity in a canonical enterprise process model.
 
 Author:
 Jeen Labs
@@ -12,7 +12,8 @@ Jeen Labs
 
 from __future__ import annotations
 
-from typing import Dict
+from typing import Any, Dict
+from copy import deepcopy
 
 from .business_taxonomy import BusinessTaxonomy
 from .ontology_types import (
@@ -22,6 +23,11 @@ from .ontology_types import (
 
 
 class OntologyEngine:
+    """
+    Adds ontology classifications to the canonical model.
+
+    The model itself is returned after enrichment.
+    """
 
     def classify_activity(
         self,
@@ -46,8 +52,29 @@ class OntologyEngine:
                 break
 
         return {
-
             "activity": activity_name,
             "businessDomain": domain.value,
             "businessCategory": category.value,
         }
+
+    # ------------------------------------------------------------------
+
+    def classify(
+        self,
+        canonical_model: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Adds ontology information to every activity in the canonical model.
+        """
+
+        model = deepcopy(canonical_model)
+
+        activities = model.get("activities", [])
+
+        for activity in activities:
+
+            activity_name = activity.get("name", "")
+
+            activity["ontology"] = self.classify_activity(activity_name)
+
+        return model

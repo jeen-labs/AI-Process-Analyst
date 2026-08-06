@@ -1,7 +1,5 @@
 """
-===============================================================================
-Tests - Enterprise Ontology Engine
-===============================================================================
+Tests for Enterprise Ontology Engine
 """
 
 from src.ontology import OntologyEngine
@@ -11,33 +9,55 @@ def test_finance_approval():
 
     engine = OntologyEngine()
 
-    result = engine.classify_activity(
-        "Approve Invoice"
-    )
+    model = {
+        "activities": [
+            {
+                "name": "Approve Invoice"
+            }
+        ]
+    }
 
-    assert result["businessDomain"] == "finance"
-    assert result["businessCategory"] == "approval"
+    result = engine.classify(model)
+
+    ontology = result["activities"][0]["ontology"]
+
+    assert ontology["businessDomain"] == "finance"
+    assert ontology["businessCategory"] == "approval"
 
 
 def test_procurement_creation():
 
     engine = OntologyEngine()
 
-    result = engine.classify_activity(
-        "Create Purchase Order"
-    )
+    model = {
+        "activities": [
+            {
+                "name": "Create Purchase Order"
+            }
+        ]
+    }
 
-    assert result["businessDomain"] == "procurement"
-    assert result["businessCategory"] == "creation"
+    result = engine.classify(model)
+
+    ontology = result["activities"][0]["ontology"]
+
+    assert ontology["businessDomain"] == "procurement"
 
 
 def test_unknown_activity():
 
     engine = OntologyEngine()
 
-    result = engine.classify_activity(
-        "Do Something"
-    )
+    model = {
+        "activities": [
+            {
+                "name": "Do Something Random"
+            }
+        ]
+    }
 
-    assert result["businessDomain"] == "unknown"
-    assert result["businessCategory"] == "unknown"
+    result = engine.classify(model)
+
+    ontology = result["activities"][0]["ontology"]
+
+    assert ontology["businessDomain"] == "unknown"

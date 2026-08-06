@@ -1,6 +1,6 @@
 """
 ===============================================================================
-Tests - Canonical Enricher
+Tests for Enterprise Canonical Enricher
 ===============================================================================
 """
 
@@ -9,44 +9,57 @@ from src.enrichment import CanonicalEnricher
 
 def test_invoice_approval():
 
-    enricher = CanonicalEnricher()
+    model = {
+        "activities": [
+            {
+                "id": "A1",
+                "name": "Approve Invoice",
+            }
+        ]
+    }
 
-    result = enricher.enrich({
+    enriched = CanonicalEnricher().enrich(model)
 
-        "activity": "Approve Invoice",
-        "businessDomain": "finance",
-        "businessCategory": "approval",
-    })
+    activity = enriched["activities"][0]
 
-    assert result["criticality"] == "high"
-    assert result["riskLevel"] == "medium"
-    assert result["automationCandidate"] is False
+    assert activity["enrichment"]["riskLevel"] == "High"
+    assert activity["enrichment"]["automationCandidate"] is True
+    assert activity["enrichment"]["ownerRole"] == "Finance Manager"
 
 
 def test_report_generation():
 
-    enricher = CanonicalEnricher()
+    model = {
+        "activities": [
+            {
+                "id": "A1",
+                "name": "Generate Monthly Report",
+            }
+        ]
+    }
 
-    result = enricher.enrich({
+    enriched = CanonicalEnricher().enrich(model)
 
-        "activity": "Generate Monthly Report",
-        "businessDomain": "finance",
-        "businessCategory": "reporting",
-    })
+    activity = enriched["activities"][0]
 
-    assert result["automationCandidate"] is True
+    assert activity["enrichment"]["automationCandidate"] is True
+    assert activity["enrichment"]["kpiCategory"] == "Reporting"
 
 
 def test_payment():
 
-    enricher = CanonicalEnricher()
+    model = {
+        "activities": [
+            {
+                "id": "A1",
+                "name": "Process Vendor Payment",
+            }
+        ]
+    }
 
-    result = enricher.enrich({
+    enriched = CanonicalEnricher().enrich(model)
 
-        "activity": "Process Payment",
-        "businessDomain": "finance",
-        "businessCategory": "payment",
-    })
+    activity = enriched["activities"][0]
 
-    assert result["criticality"] == "critical"
-    assert result["riskLevel"] == "high"
+    assert activity["enrichment"]["riskLevel"] == "High"
+    assert activity["enrichment"]["ownerRole"] == "Finance"

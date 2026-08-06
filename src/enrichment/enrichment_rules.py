@@ -1,19 +1,9 @@
 """
 ===============================================================================
-Enrichment Rules
+Enterprise Enrichment Rules
 ===============================================================================
 
-Simple business rules for enriching activities.
-
-Version 1:
-Keyword-based rules.
-
-Future versions will include:
-
-- AI reasoning
-- Knowledge Graph lookups
-- Organization-specific rules
-- Governance policies
+Central enrichment catalogue used by the Canonical Enricher.
 
 Author:
 Jeen Labs
@@ -22,55 +12,62 @@ Jeen Labs
 
 from __future__ import annotations
 
-from .enrichment_types import (
-    Criticality,
-    RiskLevel,
-)
-
 
 class EnrichmentRules:
+    """
+    Keyword-based enrichment catalogue.
 
-    @staticmethod
-    def determine_criticality(activity_name: str) -> Criticality:
+    Each keyword contributes enrichment metadata to the activity.
+    """
 
-        text = activity_name.lower()
+    RULES = {
 
-        if "approve" in text:
-            return Criticality.HIGH
+        "approve": {
+            "riskLevel": "High",
+            "automationCandidate": False,
+            "ownerRole": "Finance Manager",
+            "kpiCategory": "Approval",
+        },
 
-        if "payment" in text:
-            return Criticality.CRITICAL
+        "invoice": {
+            "riskLevel": "Medium",
+            "automationCandidate": True,
+            "ownerRole": "Finance",
+            "kpiCategory": "Finance",
+        },
 
-        if "review" in text:
-            return Criticality.MEDIUM
+        "payment": {
+            "riskLevel": "High",
+            "automationCandidate": True,
+            "ownerRole": "Finance",
+            "kpiCategory": "Finance",
+        },
 
-        return Criticality.LOW
+        "report": {
+            "riskLevel": "Low",
+            "automationCandidate": True,
+            "ownerRole": "Reporting",
+            "kpiCategory": "Reporting",
+        },
 
-    @staticmethod
-    def determine_risk(activity_name: str) -> RiskLevel:
+        "purchase": {
+            "riskLevel": "Medium",
+            "automationCandidate": True,
+            "ownerRole": "Procurement",
+            "kpiCategory": "Procurement",
+        },
 
-        text = activity_name.lower()
+        "vendor": {
+            "riskLevel": "Medium",
+            "automationCandidate": False,
+            "ownerRole": "Finance",
+            "kpiCategory": "Vendor",
+        },
 
-        if "payment" in text:
-            return RiskLevel.HIGH
-
-        if "approve" in text:
-            return RiskLevel.MEDIUM
-
-        return RiskLevel.LOW
-
-    @staticmethod
-    def automation_candidate(activity_name: str) -> bool:
-
-        text = activity_name.lower()
-
-        keywords = [
-            "validate",
-            "verify",
-            "generate",
-            "notify",
-            "email",
-            "report",
-        ]
-
-        return any(keyword in text for keyword in keywords)
+        "contract": {
+            "riskLevel": "High",
+            "automationCandidate": False,
+            "ownerRole": "Legal",
+            "kpiCategory": "Compliance",
+        },
+    }
