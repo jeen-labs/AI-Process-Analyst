@@ -2,9 +2,9 @@
 
 **Project:** AI Process Analyst
 
-**Version:** 0.1.0
+**Version:** v0.6.0
 
-**Status:** Draft
+**Status:** Active
 
 ---
 
@@ -35,35 +35,59 @@ The repository follows a **Single Source of Truth** principle, where each topic 
 
 ---
 
+## Release Documentation
+
+Release notes capture the functionality, architectural changes, testing, and milestone achievements for each published version of the project.
+
+| Version | Milestone                                   | Document           |
+| ------- | ------------------------------------------- | ------------------ |
+| v0.6.0  | Enterprise Process Core                     | releases/v0.6.0.md |
+| v0.5.0  | Enterprise Process Extraction Engine        | releases/v0.5.0.md |
+| v0.4.0  | Retry Framework and Resilient LLM Execution | releases/v0.4.0.md |
+
+Future releases will be added here as the project evolves.
+
+---
+
 ## System Design
 
-| Topic                     | Document                        |
-| ------------------------- | ------------------------------- |
-| Overall Workflow          | system_workflow.md              |
-| Enterprise Process Schema | ../schemas/process.schema.md    |
-| Prompt Engineering        | ../prompts/extraction_prompt.md |
+| Topic                        | Document                        |
+| ---------------------------- | ------------------------------- |
+| Overall Workflow             | system_workflow.md              |
+| Enterprise Process Schema    | ../schemas/process.schema.md    |
+| Enterprise Canonical Schemas | ../schemas/canonical/           |
+| Prompt Engineering           | ../prompts/extraction_prompt.md |
 
 ---
 
 ## Agent Architecture
 
-| Topic                   | Document                             |
-| ----------------------- | ------------------------------------ |
-| Agent Catalogue         | ../agents/README.md                  |
-| Document Analysis Agent | ../agents/document_analysis_agent.md |
-
-Additional agents will be added as development progresses.
+| Topic                       | Document                                 |
+| --------------------------- | ---------------------------------------- |
+| Agent Catalogue             | ../agents/README.md                      |
+| Document Analysis Agent     | ../agents/document_analysis_agent.md     |
+| Diagram Generation Agent    | ../agents/diagram_generation_agent.md    |
+| Process Relationship Agent  | ../agents/process_relationship_agent.md  |
+| Quality Review Agent        | ../agents/quality_review_agent.md        |
+| Repository Management Agent | ../agents/repository_management_agent.md |
 
 ---
 
 ## Implementation
 
-| Topic            | Location             |
-| ---------------- | -------------------- |
-| Source Code      | ../src/              |
-| Test Suite       | ../tests/            |
-| Examples         | ../examples/         |
-| Sample Documents | ../sample_documents/ |
+| Topic                | Location                |
+| -------------------- | ----------------------- |
+| Source Code          | ../src/                 |
+| Enterprise Pipeline  | ../src/pipeline/        |
+| Business Ontology    | ../src/ontology/        |
+| Canonical Enrichment | ../src/enrichment/      |
+| Knowledge Graph      | ../src/knowledge_graph/ |
+| Rule Engine          | ../src/rules/           |
+| Integration Layer    | ../src/integration/     |
+| Schema Validation    | ../src/validator/       |
+| Test Suite           | ../tests/               |
+| Examples             | ../examples/            |
+| Sample Documents     | ../sample_documents/    |
 
 ---
 
@@ -90,6 +114,8 @@ If you are new to the project, follow this order:
 6. agents/README.md
 7. schemas/process.schema.md
 8. prompts/extraction_prompt.md
+9. CHANGELOG.md
+10. docs/releases/
 
 After understanding the documentation, explore the implementation in the `src` directory.
 
@@ -109,6 +135,8 @@ Future documentation may include:
 - Administration Guide
 - AI Evaluation Guide
 - Release Notes
+- Design Specifications
+- Operations Guide
 
 These documents will be introduced only when required to support the project's growth.
 

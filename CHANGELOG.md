@@ -2,7 +2,7 @@
 
 All notable changes to **AI Process Analyst** will be documented in this file.
 
-The project follows a simple versioning approach during early development. As the platform matures, formal Semantic Versioning may be adopted.
+The project currently follows an incremental versioning approach. As the platform matures, the project will transition to formal Semantic Versioning (SemVer).
 
 ---
 
@@ -20,12 +20,85 @@ The project follows a simple versioning approach during early development. As th
 
 ## Planned
 
-- Initial JSON schema
-- Prompt library
-- Sample process documents
-- First AI extraction prototype
-- Mermaid diagram generation
-- Process repository generation
+- AI Agent Orchestration
+- Agent Registry
+- Governance Engine
+- Policy Engine
+- Execution Manager
+- AI Process Optimization
+- Enterprise Analytics
+- Additional LLM Providers
+- Expanded Knowledge Graph capabilities
+
+---
+
+# [v0.6.0] - 2026-08-06
+
+## Added
+
+- Enterprise Canonical Process Model
+- Canonical Schema Validation
+- Canonical Normalization Framework
+- Business Ontology Engine
+- Canonical Enrichment Engine
+- Business Rule Engine
+- Enterprise Processing Pipeline
+- Enterprise Knowledge Graph
+- Enterprise Integration Layer
+- Comprehensive automated test suite
+
+## Improved
+
+- Modular enterprise architecture
+- Extensible normalization framework
+- Rule-driven enrichment
+- Ontology-based business classification
+- Integration-ready processing pipeline
+
+## Notes
+
+Completed **Milestone 2 – Enterprise Process Core**.
+
+This release establishes the enterprise architecture that future AI capabilities will build upon, including agent orchestration, governance, analytics, optimization, and enterprise process intelligence.
+
+Detailed release notes are available in:
+
+`docs/releases/v0.6.0.md`
+
+---
+
+# [v0.5.0] - 2026-08-05
+
+## Added
+
+- Enterprise Process Extraction Engine
+- Enterprise extraction architecture
+- Process extraction pipeline
+- Enterprise extraction validation
+
+## Notes
+
+Completed **Milestone 1 – Enterprise Process Extraction Engine**.
+
+This release established the foundation for extracting enterprise process models from business documentation.
+
+---
+
+# [v0.4.0]
+
+## Added
+
+- Retry framework
+- Resilient LLM execution
+
+## Improved
+
+- Error handling
+- LLM request reliability
+
+## Notes
+
+Introduced robust retry capabilities to improve resilience during AI model interactions.
 
 ---
 
@@ -40,25 +113,11 @@ The project follows a simple versioning approach during early development. As th
 - ARCHITECTURE.md
 - CONTRIBUTING.md
 - CODE_OF_CONDUCT.md
-- License
+- LICENSE
 - CHANGELOG.md
 
 ## Notes
 
 Initial project foundation completed.
 
-This release establishes the vision, roadmap, architecture, and governance documents that will guide future development.
-
----
-
-# Future Releases
-
-Future releases will document:
-
-- New capabilities
-- Architecture improvements
-- AI enhancements
-- Bug fixes
-- Performance improvements
-- Documentation updates
-- Community contributions
+This release established the vision, roadmap, architecture, governance, and documentation structure that guides future development.
