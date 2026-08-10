@@ -80,6 +80,7 @@ components rather than duplicating their responsibilities.
 
 from typing import Any
 
+
 # =============================================================================
 # Local Imports
 # =============================================================================
@@ -89,20 +90,24 @@ from src.orchestration.execution_manager import ExecutionManager
 from src.orchestration.governance import Governance
 from src.orchestration.planner import Planner
 
+
 # =============================================================================
 # Exceptions
 # =============================================================================
+
 
 class OrchestrationEngineError(ValueError):
     """
     Base exception raised for orchestration engine failures.
     """
+
     pass
 
 
 # =============================================================================
 # Orchestration Engine
 # =============================================================================
+
 
 class OrchestrationEngine:
     """
@@ -141,6 +146,7 @@ class OrchestrationEngine:
         OrchestrationEngineError
             If any required dependency is None.
         """
+
         if planner is None:
             raise OrchestrationEngineError(
                 "planner must not be None."
@@ -196,85 +202,110 @@ class OrchestrationEngine:
         Raises
         ------
         OrchestrationEngineError
-            If the request is invalid or the planned action cannot be
-            executed.
+            If the request is invalid, a dependent orchestration component
+            fails, or the planned action cannot be executed.
+
+        Notes
+        -----
+        This method establishes the integration-level error boundary for
+        the orchestration API. Component-specific exceptions are preserved
+        through exception chaining while callers receive the stable
+        OrchestrationEngineError type.
         """
+
         self._validate_request(request)
 
         normalized_request = request.strip()
 
-        # ---------------------------------------------------------------------
-        # Phase 1: Planning
-        # ---------------------------------------------------------------------
+        try:
+            # -----------------------------------------------------------------
+            # Phase 1: Planning
+            # -----------------------------------------------------------------
 
-        plan = self._planner.plan(
-            normalized_request
-        )
-
-        if not isinstance(plan, dict):
-            raise OrchestrationEngineError(
-                "Planner must return a dictionary."
+            plan = self._planner.plan(
+                normalized_request
             )
 
-        action = plan.get("plan_type")
+            if not isinstance(plan, dict):
+                raise OrchestrationEngineError(
+                    "Planner must return a dictionary."
+                )
 
-        if not isinstance(action, str):
-            raise OrchestrationEngineError(
-                "Execution plan must contain a string plan_type."
+            action = plan.get("plan_type")
+
+            if not isinstance(action, str):
+                raise OrchestrationEngineError(
+                    "Execution plan must contain a string plan_type."
+                )
+
+            normalized_action = action.strip()
+
+            if not normalized_action:
+                raise OrchestrationEngineError(
+                    "Execution plan plan_type must not be empty."
+                )
+
+            # -----------------------------------------------------------------
+            # Phase 2: Governance
+            # -----------------------------------------------------------------
+
+            governance_decision = self._governance.evaluate(
+                normalized_action
             )
 
-        normalized_action = action.strip()
+            if not isinstance(governance_decision, dict):
+                raise OrchestrationEngineError(
+                    "Governance must return a dictionary decision."
+                )
 
-        if not normalized_action:
-            raise OrchestrationEngineError(
-                "Execution plan plan_type must not be empty."
+            if not governance_decision.get("allowed"):
+                raise OrchestrationEngineError(
+                    governance_decision.get(
+                        "reason",
+                        "Action is not permitted by the current policy.",
+                    )
+                )
+
+            # -----------------------------------------------------------------
+            # Phase 3: Agent Discovery
+            # -----------------------------------------------------------------
+
+            if not self._agent_registry.contains(
+                normalized_action
+            ):
+                raise OrchestrationEngineError(
+                    "No agent registered for action: "
+                    f"{normalized_action}"
+                )
+
+            # -----------------------------------------------------------------
+            # Phase 4: Execution
+            # -----------------------------------------------------------------
+
+            result = self._execution_manager.execute(
+                normalized_action,
+                normalized_request,
             )
 
-        # ---------------------------------------------------------------------
-        # Phase 2: Governance
-        # ---------------------------------------------------------------------
+            # -----------------------------------------------------------------
+            # Phase 5: Structured Result
+            # -----------------------------------------------------------------
 
-        governance_decision = self._governance.evaluate(
-            normalized_action
-        )
+            return {
+                "request": normalized_request,
+                "plan": plan,
+                "action": normalized_action,
+                "governance": governance_decision,
+                "result": result,
+            }
 
-        if not governance_decision["allowed"]:
+        except OrchestrationEngineError:
+            raise
+
+        except Exception as exc:
             raise OrchestrationEngineError(
-                governance_decision["reason"]
-            )
-
-        # ---------------------------------------------------------------------
-        # Phase 3: Agent Discovery
-        # ---------------------------------------------------------------------
-
-        if not self._agent_registry.contains(
-            normalized_action
-        ):
-            raise OrchestrationEngineError(
-                "No agent registered for action: "
-                f"{normalized_action}"
-            )
-
-        # ---------------------------------------------------------------------
-        # Phase 4: Execution
-        # ---------------------------------------------------------------------
-
-        result = self._execution_manager.execute(
-            normalized_action,
-            normalized_request,
-        )
-
-        # ---------------------------------------------------------------------
-        # Phase 5: Structured Result
-        # ---------------------------------------------------------------------
-
-        return {
-            "request": normalized_request,
-            "plan": plan,
-            "action": normalized_action,
-            "governance": governance_decision,
-            "result": result,
-        }
+                "Orchestration execution failed."
+            ) from exc
 
     # =========================================================================
     # Planning Only
@@ -300,6 +331,7 @@ class OrchestrationEngine:
         dict[str, Any]
             Planner-generated execution plan.
         """
+
         self._validate_request(request)
 
         return self._planner.plan(
@@ -319,6 +351,7 @@ class OrchestrationEngine:
 
         This method does not execute the action.
         """
+
         if not isinstance(action, str):
             raise ValueError(
                 "action must be a string."
@@ -348,6 +381,7 @@ class OrchestrationEngine:
 
         This method does not execute the agent.
         """
+
         if not isinstance(action, str):
             raise ValueError(
                 "action must be a string."
@@ -375,6 +409,7 @@ class OrchestrationEngine:
         """
         Validate an orchestration request.
         """
+
         if not isinstance(request, str):
             raise OrchestrationEngineError(
                 "request must be a string."
@@ -391,6 +426,7 @@ class OrchestrationEngine:
 # =============================================================================
 
 if __name__ == "__main__":
+
     class ExampleAgent:
         """
         Simple example process-analysis agent.
@@ -403,6 +439,7 @@ if __name__ == "__main__":
             """
             Return a deterministic example result.
             """
+
             return {
                 "agent": "process_analysis",
                 "request": request,

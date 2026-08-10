@@ -64,12 +64,18 @@ dist/
 .ipynb_checkpoints/
 
 # -------------------------
+
 # Temporary Files
+
 # -------------------------
+
 *.tmp
 *.temp
 *.bak
 *.swp
+
+# Phase 3.11 inspection artifacts
+phase_3_11_files.txt
 
 # -------------------------
 # Generated Reports (optional)

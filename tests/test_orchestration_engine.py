@@ -601,3 +601,231 @@ def test_orchestration_supports_multiple_requests(
         "Analyse customer onboarding.",
         "Analyse invoice approval.",
     ]
+
+# =============================================================================
+# Integration-Level Error Handling
+# =============================================================================
+
+class FailingPlanner:
+    """
+    Planner test double that raises an integration-level failure.
+    """
+
+    def plan(
+        self,
+        request: str,
+    ) -> dict[str, Any]:
+        raise RuntimeError(
+            "planner integration failure"
+        )
+
+
+class FailingGovernance:
+    """
+    Governance test double that raises an integration-level failure.
+    """
+
+    def evaluate(
+        self,
+        action: str,
+    ) -> dict[str, Any]:
+        raise RuntimeError(
+            "governance integration failure"
+        )
+
+
+class FailingExecutionManager:
+    """
+    Execution manager test double that raises an integration-level failure.
+    """
+
+    def execute(
+        self,
+        action: str,
+        request: str,
+    ) -> Any:
+        raise RuntimeError(
+            "execution integration failure"
+        )
+
+
+class FixedPlanner:
+    """
+    Planner test double returning a deterministic execution plan.
+    """
+
+    def plan(
+        self,
+        request: str,
+    ) -> dict[str, Any]:
+        return {
+            "request": request,
+            "plan_type": "process_analysis",
+            "steps": [],
+        }
+
+
+class FixedGovernance:
+    """
+    Governance test double returning an allowed decision.
+    """
+
+    def evaluate(
+        self,
+        action: str,
+    ) -> dict[str, Any]:
+        return {
+            "action": action,
+            "allowed": True,
+            "reason": "Action is permitted by the current policy.",
+        }
+
+
+def test_orchestrate_wraps_planner_integration_failure(
+    registry: AgentRegistry,
+    governance: Governance,
+):
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    engine = OrchestrationEngine(
+        planner=FailingPlanner(),
+        agent_registry=registry,
+        governance=governance,
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        OrchestrationEngineError,
+        match="Orchestration execution failed",
+    ) as exc_info:
+        engine.orchestrate(
+            "Analyse customer onboarding."
+        )
+
+    assert isinstance(
+        exc_info.value.__cause__,
+        RuntimeError,
+    )
+
+    assert str(
+        exc_info.value.__cause__
+    ) == "planner integration failure"
+
+
+def test_orchestrate_wraps_governance_integration_failure(
+    registry: AgentRegistry,
+):
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=Governance(),
+    )
+
+    engine = OrchestrationEngine(
+        planner=FixedPlanner(),
+        agent_registry=registry,
+        governance=FailingGovernance(),
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        OrchestrationEngineError,
+        match="Orchestration execution failed",
+    ) as exc_info:
+        engine.orchestrate(
+            "Analyse customer onboarding."
+        )
+
+    assert isinstance(
+        exc_info.value.__cause__,
+        RuntimeError,
+    )
+
+    assert str(
+        exc_info.value.__cause__
+    ) == "governance integration failure"
+
+
+def test_orchestrate_wraps_execution_integration_failure(
+    registry: AgentRegistry,
+    governance: Governance,
+):
+    registry.register(
+        "process_analysis",
+        ExampleAgent(),
+    )
+
+    engine = OrchestrationEngine(
+        planner=FixedPlanner(),
+        agent_registry=registry,
+        governance=FixedGovernance(),
+        execution_manager=FailingExecutionManager(),
+    )
+
+    with pytest.raises(
+        OrchestrationEngineError,
+        match="Orchestration execution failed",
+    ) as exc_info:
+        engine.orchestrate(
+            "Analyse customer onboarding."
+        )
+
+    assert isinstance(
+        exc_info.value.__cause__,
+        RuntimeError,
+    )
+
+    assert str(
+        exc_info.value.__cause__
+    ) == "execution integration failure"
+
+
+def test_orchestrate_preserves_existing_orchestration_errors(
+    planner: Planner,
+    registry: AgentRegistry,
+):
+    governance = Governance(
+        allowed_actions=[
+            "process_analysis",
+            "missing_action",
+        ]
+    )
+
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    engine = OrchestrationEngine(
+        planner=planner,
+        agent_registry=registry,
+        governance=governance,
+        execution_manager=execution_manager,
+    )
+
+    class MissingAgentPlanner:
+        """
+        Planner test double returning a governed but unregistered action.
+        """
+
+        def plan(
+            self,
+            request: str,
+        ) -> dict[str, Any]:
+            return {
+                "request": request,
+                "plan_type": "missing_action",
+                "steps": [],
+            }
+
+    engine._planner = MissingAgentPlanner()
+
+    with pytest.raises(
+        OrchestrationEngineError,
+        match="No agent registered",
+    ):
+        engine.orchestrate(
+            "Analyse customer onboarding."
+        )
