@@ -86,6 +86,7 @@ from typing import Any
 # =============================================================================
 
 from src.orchestration.agent_registry import AgentRegistry
+from src.orchestration.contracts import OrchestrationResult
 from src.orchestration.execution_manager import ExecutionManager
 from src.orchestration.governance import Governance
 from src.orchestration.planner import Planner
@@ -179,7 +180,7 @@ class OrchestrationEngine:
     def orchestrate(
         self,
         request: str,
-    ) -> dict[str, Any]:
+    ) -> OrchestrationResult:
         """
         Plan and execute an orchestration request.
 
@@ -291,13 +292,13 @@ class OrchestrationEngine:
             # Phase 5: Structured Result
             # -----------------------------------------------------------------
 
-            return {
-                "request": normalized_request,
-                "plan": plan,
-                "action": normalized_action,
-                "governance": governance_decision,
-                "result": result,
-            }
+            return OrchestrationResult(
+                request=normalized_request,
+                plan=plan,
+                action=normalized_action,
+                governance=governance_decision,
+                result=result,
+            )
 
         except OrchestrationEngineError:
             raise

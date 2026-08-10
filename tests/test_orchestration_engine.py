@@ -26,6 +26,7 @@ from typing import Any
 import pytest
 
 from src.orchestration.agent_registry import AgentRegistry
+from src.orchestration.contracts import OrchestrationResult
 from src.orchestration.execution_manager import ExecutionManager
 from src.orchestration.governance import Governance
 from src.orchestration.orchestration_engine import (
@@ -829,3 +830,109 @@ def test_orchestrate_preserves_existing_orchestration_errors(
         engine.orchestrate(
             "Analyse customer onboarding."
         )
+
+# =============================================================================
+# Phase 3.11.3 - Execution / Result Contract
+# =============================================================================
+
+def test_orchestrate_returns_execution_result_contract(
+    engine_components,
+):
+    engine, _ = engine_components
+
+    result = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert isinstance(result, dict)
+
+    assert set(result.keys()) == {
+        "request",
+        "plan",
+        "action",
+        "governance",
+        "result",
+    }
+
+
+def test_orchestrate_result_contract_contains_expected_types(
+    engine_components,
+):
+    engine, _ = engine_components
+
+    result: OrchestrationResult = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert isinstance(
+        result["request"],
+        str,
+    )
+
+    assert isinstance(
+        result["plan"],
+        dict,
+    )
+
+    assert isinstance(
+        result["action"],
+        str,
+    )
+
+    assert isinstance(
+        result["governance"],
+        dict,
+    )
+
+    assert isinstance(
+        result["result"],
+        dict,
+    )
+
+
+def test_orchestrate_result_contract_preserves_execution_result(
+    engine_components,
+):
+    engine, _ = engine_components
+
+    result: OrchestrationResult = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert result["result"] == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }
+
+
+def test_orchestrate_result_contract_preserves_request_and_action(
+    engine_components,
+):
+    engine, _ = engine_components
+
+    result: OrchestrationResult = engine.orchestrate(
+        "   Analyse customer onboarding.   "
+    )
+
+    assert result["request"] == (
+        "Analyse customer onboarding."
+    )
+
+    assert result["action"] == "process_analysis"
+
+
+def test_orchestrate_result_contract_is_deterministic(
+    engine_components,
+):
+    engine, _ = engine_components
+
+    first: OrchestrationResult = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    second: OrchestrationResult = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert first == second
