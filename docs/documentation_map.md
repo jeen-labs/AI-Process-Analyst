@@ -2,7 +2,7 @@
 
 **Project:** AI Process Analyst
 
-**Version:** v0.6.0
+**Version:** v0.7.0
 
 **Status:** Active
 
@@ -41,6 +41,7 @@ Release notes capture the functionality, architectural changes, testing, and mil
 
 | Version | Milestone                                   | Document           |
 | ------- | ------------------------------------------- | ------------------ |
+| v0.7.0  | Enterprise AI Platform                      | releases/v0.7.0.md |
 | v0.6.0  | Enterprise Process Core                     | releases/v0.6.0.md |
 | v0.5.0  | Enterprise Process Extraction Engine        | releases/v0.5.0.md |
 | v0.4.0  | Retry Framework and Resilient LLM Execution | releases/v0.4.0.md |
@@ -75,19 +76,20 @@ Future releases will be added here as the project evolves.
 
 ## Implementation
 
-| Topic                | Location                |
-| -------------------- | ----------------------- |
-| Source Code          | ../src/                 |
-| Enterprise Pipeline  | ../src/pipeline/        |
-| Business Ontology    | ../src/ontology/        |
-| Canonical Enrichment | ../src/enrichment/      |
-| Knowledge Graph      | ../src/knowledge_graph/ |
-| Rule Engine          | ../src/rules/           |
-| Integration Layer    | ../src/integration/     |
-| Schema Validation    | ../src/validator/       |
-| Test Suite           | ../tests/               |
-| Examples             | ../examples/            |
-| Sample Documents     | ../sample_documents/    |
+| Topic                    | Location                |
+| ------------------------ | ----------------------- |
+| Source Code              | ../src/                 |
+| Enterprise Pipeline      | ../src/pipeline/        |
+| Business Ontology        | ../src/ontology/        |
+| Canonical Enrichment     | ../src/enrichment/      |
+| Knowledge Graph          | ../src/knowledge_graph/ |
+| Rule Engine              | ../src/rules/           |
+| Integration Layer        | ../src/integration/     |
+| Schema Validation        | ../src/validator/       |
+| Enterprise Orchestration | ../src/orchestration/   |
+| Test Suite               | ../tests/               |
+| Examples                 | ../examples/            |
+| Sample Documents         | ../sample_documents/    |
 
 ---
 
