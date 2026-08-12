@@ -104,4 +104,5 @@ def test_governance_public_exports_are_stable():
     assert governance.__all__ == [
         "GovernanceDecision",
         "GovernanceRequest",
+        "GovernancePolicyEngine",
     ]

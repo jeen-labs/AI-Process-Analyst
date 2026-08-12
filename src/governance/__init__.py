@@ -9,11 +9,12 @@ Public package exports for the Governance Platform.
 
 Phase:
 Milestone 4 - Governance Platform
-Phase 4.1 - Define Governance Platform Contracts
+Phase 4.2 - Implement Governance Policy Engine
 
-This package currently exposes governance contracts only.
+This package exposes the stable public contracts and policy engine
+for the Governance Platform.
 
-Governance implementation components will be introduced incrementally
+Additional governance components will be introduced incrementally
 through subsequent Milestone 4 phases.
 """
 
@@ -26,6 +27,13 @@ from src.governance.governance_contracts import (
     GovernanceRequest,
 )
 
+# =============================================================================
+# Governance Policy Engine
+# =============================================================================
+
+from src.governance.governance_policy_engine import (
+    GovernancePolicyEngine,
+)
 
 # =============================================================================
 # Stable Public Exports
@@ -34,4 +42,5 @@ from src.governance.governance_contracts import (
 __all__ = [
     "GovernanceDecision",
     "GovernanceRequest",
+    "GovernancePolicyEngine",
 ]
