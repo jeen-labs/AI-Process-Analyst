@@ -36,6 +36,15 @@ from src.governance.governance_policy_engine import (
 )
 
 # =============================================================================
+# Governance Permissions
+# =============================================================================
+
+from src.governance.governance_permissions import (
+    GovernancePermission,
+    GovernancePermissions,
+)
+
+# =============================================================================
 # Stable Public Exports
 # =============================================================================
 
@@ -43,4 +52,6 @@ __all__ = [
     "GovernanceDecision",
     "GovernanceRequest",
     "GovernancePolicyEngine",
+    "GovernancePermission",
+    "GovernancePermissions",
 ]
