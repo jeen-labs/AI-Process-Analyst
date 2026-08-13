@@ -54,6 +54,15 @@ from src.governance.governance_authorization import (
 )
 
 # =============================================================================
+# Governance Audit
+# =============================================================================
+
+from src.governance.governance_audit import (
+    GovernanceAudit,
+    GovernanceAuditEntry,
+)
+
+# =============================================================================
 # Stable Public Exports
 # =============================================================================
 
@@ -64,4 +73,6 @@ __all__ = [
     "GovernancePermission",
     "GovernancePermissions",
     "GovernanceAuthorization",
+    "GovernanceAudit",
+    "GovernanceAuditEntry",
 ]

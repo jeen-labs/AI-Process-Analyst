@@ -110,6 +110,15 @@ def test_governance_authorization_is_publicly_importable():
 
     assert GovernanceAuthorization is not None
 
+def test_governance_audit_is_publicly_importable():
+    """Verify Governance Audit is exposed from the package root."""
+    from src.governance import (
+        GovernanceAudit,
+        GovernanceAuditEntry,
+    )
+
+    assert GovernanceAudit is not None
+    assert GovernanceAuditEntry is not None
 
 # =============================================================================
 # Public API
@@ -126,4 +135,6 @@ def test_governance_public_exports_are_stable():
         "GovernancePermission",
         "GovernancePermissions",
         "GovernanceAuthorization",
+        "GovernanceAudit",
+        "GovernanceAuditEntry",
     ]
