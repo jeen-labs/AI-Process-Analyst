@@ -14,14 +14,16 @@ Phase 4.1 - Define Governance Platform Contracts
 This module defines structural contracts only.
 
 It does not implement:
+
 - policy evaluation
-- permission management
 - authorization
 - auditing
 - security controls
 - compliance controls
 
-Those responsibilities belong to later Governance Platform components.
+Policy evaluation is implemented by GovernancePolicyEngine.
+
+Permission management is implemented by GovernancePermissions.
 """
 
 # =============================================================================

@@ -92,6 +92,7 @@ def test_governance_request_accepts_expected_structure():
         "enterprise_process_repository"
     )
 
+
 def test_governance_permissions_are_publicly_importable():
     """Verify Governance Permissions are exposed from the package root."""
     from src.governance import (
@@ -101,6 +102,14 @@ def test_governance_permissions_are_publicly_importable():
 
     assert GovernancePermission is not None
     assert GovernancePermissions is not None
+
+
+def test_governance_authorization_is_publicly_importable():
+    """Verify GovernanceAuthorization is exposed from the package root."""
+    from src.governance import GovernanceAuthorization
+
+    assert GovernanceAuthorization is not None
+
 
 # =============================================================================
 # Public API
@@ -116,4 +125,5 @@ def test_governance_public_exports_are_stable():
         "GovernancePolicyEngine",
         "GovernancePermission",
         "GovernancePermissions",
+        "GovernanceAuthorization",
     ]
