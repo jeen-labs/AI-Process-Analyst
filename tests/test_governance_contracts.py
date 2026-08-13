@@ -137,4 +137,6 @@ def test_governance_public_exports_are_stable():
         "GovernanceAuthorization",
         "GovernanceAudit",
         "GovernanceAuditEntry",
+        "GovernanceCompliance",
+        "GovernanceComplianceError",
     ]

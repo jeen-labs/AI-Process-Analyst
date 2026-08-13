@@ -9,11 +9,11 @@ Public package exports for the Governance Platform.
 
 Phase:
 Milestone 4 - Governance Platform
-Phase 4.4 - Implement Governance Authorization
+Phase 4.7 - Implement Governance Compliance
 
 This package exposes the stable public contracts, policy engine,
-permission management, and authorization engine for the Governance
-Platform.
+permission management, authorization, audit, security, and compliance
+components for the Governance Platform.
 
 Additional governance components will be introduced incrementally
 through subsequent Milestone 4 phases.
@@ -63,6 +63,15 @@ from src.governance.governance_audit import (
 )
 
 # =============================================================================
+# Governance Compliance
+# =============================================================================
+
+from src.governance.governance_compliance import (
+    GovernanceCompliance,
+    GovernanceComplianceError,
+)
+
+# =============================================================================
 # Stable Public Exports
 # =============================================================================
 
@@ -75,4 +84,6 @@ __all__ = [
     "GovernanceAuthorization",
     "GovernanceAudit",
     "GovernanceAuditEntry",
+    "GovernanceCompliance",
+    "GovernanceComplianceError",
 ]
