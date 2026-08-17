@@ -80,6 +80,31 @@ class ExecutionManager:
         """
         Execute a governed action.
 
+        This remains the stable execution API used by existing callers.
+
+        Governance and agent resolution remain owned by the
+        ExecutionManager.
+        """
+
+        _, result = self.execute_with_governance(
+            action,
+            request,
+        )
+
+        return result
+
+    def execute_with_governance(
+        self,
+        action: str,
+        request: Any,
+    ) -> tuple[dict[str, Any], Any]:
+        """
+        Execute an action and return both its governance decision and result.
+
+        This method allows the top-level orchestration engine to obtain the
+        governance decision that belongs to the execution boundary without
+        performing governance evaluation a second time.
+
         Parameters
         ----------
         action : str
@@ -90,42 +115,63 @@ class ExecutionManager:
 
         Returns
         -------
-        Any
-            Result returned by the registered agent.
+        tuple[dict[str, Any], Any]
+            The governance decision and the agent execution result.
 
         Raises
         ------
-        ValueError
-            If the action is invalid.
-
         ExecutionManagerError
-            If governance denies the action or the action has no
-            registered agent.
+            If governance denies the action, no agent is registered, or the
+            registered agent cannot execute the action.
         """
 
-        normalized_action = self._validate_action(action)
+        normalized_action = self._validate_action(
+            action
+        )
 
-        decision = self._governance.evaluate(normalized_action)
+        decision = self._governance.evaluate(
+            normalized_action
+        )
 
-        if not decision["allowed"]:
+        if not isinstance(decision, dict):
             raise ExecutionManagerError(
-                decision["reason"]
+                "Governance must return a dictionary decision."
             )
 
-        if not self._agent_registry.contains(normalized_action):
+        # Safer check: explicitly verify allowed is True
+        allowed = decision.get("allowed")
+        if allowed is not True:
             raise ExecutionManagerError(
-                f"No agent registered for action: {normalized_action}"
+                decision.get(
+                    "reason",
+                    "Action is not permitted by the current policy.",
+                )
             )
 
-        agent = self._agent_registry.get(normalized_action)
 
-        if not hasattr(agent, "execute"):
+        if not self._agent_registry.contains(
+            normalized_action
+        ):
             raise ExecutionManagerError(
-                f"Registered agent cannot execute action: "
+                "No agent registered for action: "
                 f"{normalized_action}"
             )
 
-        return agent.execute(request)
+        agent = self._agent_registry.get(
+            normalized_action
+        )
+
+        if not hasattr(agent, "execute"):
+            raise ExecutionManagerError(
+                "Registered agent cannot execute action: "
+                f"{normalized_action}"
+            )
+
+        result = agent.execute(
+            request
+        )
+
+        return decision, result
 
     def is_allowed(self, action: str) -> bool:
         """

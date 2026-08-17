@@ -640,11 +640,11 @@ class FailingExecutionManager:
     Execution manager test double that raises an integration-level failure.
     """
 
-    def execute(
+    def execute_with_governance(
         self,
         action: str,
         request: str,
-    ) -> Any:
+    ) -> tuple[dict[str, Any], Any]:
         raise RuntimeError(
             "execution integration failure"
         )
@@ -686,9 +686,10 @@ def test_orchestrate_wraps_planner_integration_failure(
     registry: AgentRegistry,
     governance: Governance,
 ):
+
     execution_manager = ExecutionManager(
         agent_registry=registry,
-        governance=governance,
+        governance=FailingGovernance(),
     )
 
     engine = OrchestrationEngine(
@@ -719,15 +720,35 @@ def test_orchestrate_wraps_planner_integration_failure(
 def test_orchestrate_wraps_governance_integration_failure(
     registry: AgentRegistry,
 ):
+    registry.register(
+        "process_analysis",
+        ExampleAgent(),
+    )
+
     execution_manager = ExecutionManager(
         agent_registry=registry,
         governance=Governance(),
     )
 
+def test_orchestrate_wraps_governance_integration_failure(
+    registry: AgentRegistry,
+):
+    registry.register(
+        "process_analysis",
+        ExampleAgent(),
+    )
+
+    failing_governance = FailingGovernance()
+
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=failing_governance,
+    )
+
     engine = OrchestrationEngine(
         planner=FixedPlanner(),
         agent_registry=registry,
-        governance=FailingGovernance(),
+        governance=failing_governance,
         execution_manager=execution_manager,
     )
 

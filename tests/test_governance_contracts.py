@@ -19,7 +19,6 @@ from src.governance import (
     GovernanceRequest,
 )
 
-
 # =============================================================================
 # Governance Decision Contract
 # =============================================================================
@@ -139,4 +138,8 @@ def test_governance_public_exports_are_stable():
         "GovernanceAuditEntry",
         "GovernanceCompliance",
         "GovernanceComplianceError",
+        "GovernanceSecurity",
+        "GovernanceSecurityError",
+        "GovernanceDecisionBoundary",
+        "GovernanceDecisionBoundaryError",
     ]

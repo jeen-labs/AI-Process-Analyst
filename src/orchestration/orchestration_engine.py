@@ -87,7 +87,10 @@ from typing import Any
 
 from src.orchestration.agent_registry import AgentRegistry
 from src.orchestration.contracts import OrchestrationResult
-from src.orchestration.execution_manager import ExecutionManager
+from src.orchestration.execution_manager import (
+    ExecutionManager,
+    ExecutionManagerError,
+)
 from src.orchestration.governance import Governance
 from src.orchestration.planner import Planner
 
@@ -247,49 +250,18 @@ class OrchestrationEngine:
                 )
 
             # -----------------------------------------------------------------
-            # Phase 2: Governance
+            # Phase 2: Governed Execution
             # -----------------------------------------------------------------
 
-            governance_decision = self._governance.evaluate(
-                normalized_action
-            )
-
-            if not isinstance(governance_decision, dict):
-                raise OrchestrationEngineError(
-                    "Governance must return a dictionary decision."
+            governance_decision, result = (
+                self._execution_manager.execute_with_governance(
+                    normalized_action,
+                    normalized_request,
                 )
-
-            if not governance_decision.get("allowed"):
-                raise OrchestrationEngineError(
-                    governance_decision.get(
-                        "reason",
-                        "Action is not permitted by the current policy.",
-                    )
-                )
-
-            # -----------------------------------------------------------------
-            # Phase 3: Agent Discovery
-            # -----------------------------------------------------------------
-
-            if not self._agent_registry.contains(
-                normalized_action
-            ):
-                raise OrchestrationEngineError(
-                    "No agent registered for action: "
-                    f"{normalized_action}"
-                )
-
-            # -----------------------------------------------------------------
-            # Phase 4: Execution
-            # -----------------------------------------------------------------
-
-            result = self._execution_manager.execute(
-                normalized_action,
-                normalized_request,
             )
 
             # -----------------------------------------------------------------
-            # Phase 5: Structured Result
+            # Phase 3: Structured Result
             # -----------------------------------------------------------------
 
             return OrchestrationResult(
@@ -302,6 +274,11 @@ class OrchestrationEngine:
 
         except OrchestrationEngineError:
             raise
+
+        except ExecutionManagerError as exc:
+            raise OrchestrationEngineError(
+                str(exc)
+            ) from exc
 
         except Exception as exc:
             raise OrchestrationEngineError(

@@ -475,3 +475,80 @@ def test_existing_deterministic_behaviour_remains_compatible(
         "Analyse customer onboarding.",
         "Analyse customer onboarding.",
     ]
+
+# =============================================================================
+# ExecutionManager Compatibility
+# =============================================================================
+
+def test_execution_manager_execute_remains_compatible():
+    """
+    Existing callers using ExecutionManager.execute() must continue to
+    receive only the agent result.
+    """
+
+    registry = AgentRegistry()
+    governance = Governance()
+    agent = BackwardCompatibilityAgent()
+
+    registry.register(
+        "process_analysis",
+        agent,
+    )
+
+    manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    result = manager.execute(
+        "process_analysis",
+        "Analyse customer onboarding.",
+    )
+
+    assert result == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }
+
+    assert agent.calls == [
+        "Analyse customer onboarding."
+    ]
+
+
+def test_execution_manager_execute_with_governance_returns_decision_and_result():
+    """
+    Verify the new execution-boundary method returns both the governance
+    decision and the execution result.
+    """
+
+    registry = AgentRegistry()
+    governance = Governance()
+    agent = BackwardCompatibilityAgent()
+
+    registry.register(
+        "process_analysis",
+        agent,
+    )
+
+    manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    decision, result = manager.execute_with_governance(
+        "process_analysis",
+        "Analyse customer onboarding.",
+    )
+
+    assert decision == {
+        "action": "process_analysis",
+        "allowed": True,
+        "reason": "Action is permitted by the current policy.",
+    }
+
+    assert result == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }

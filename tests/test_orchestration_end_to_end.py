@@ -301,6 +301,58 @@ def test_end_to_end_governance_rejection_prevents_execution():
 
     assert agent.calls == []
 
+# =============================================================================
+# Governance Evaluation Ownership
+# =============================================================================
+
+def test_end_to_end_governance_is_evaluated_once():
+    """
+    Verify that the execution boundary performs one governance evaluation
+    for a complete orchestration request.
+    """
+
+    class CountingGovernance(Governance):
+        def __init__(self):
+            super().__init__()
+            self.evaluate_calls = 0
+
+        def evaluate(self, action):
+            self.evaluate_calls += 1
+            return super().evaluate(action)
+
+    planner = Planner()
+    registry = AgentRegistry()
+    governance = CountingGovernance()
+    agent = EndToEndAgent()
+
+    registry.register(
+        "process_analysis",
+        agent,
+    )
+
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    engine = OrchestrationEngine(
+        planner=planner,
+        agent_registry=registry,
+        governance=governance,
+        execution_manager=execution_manager,
+    )
+
+    result = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert result["governance"]["allowed"] is True
+
+    assert governance.evaluate_calls == 1
+
+    assert agent.calls == [
+        "Analyse customer onboarding."
+    ]
 
 # =============================================================================
 # Agent Registry Boundary

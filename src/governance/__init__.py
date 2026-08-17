@@ -72,6 +72,24 @@ from src.governance.governance_compliance import (
 )
 
 # =============================================================================
+# Governance Security
+# =============================================================================
+
+from src.governance.governance_security import (
+    GovernanceSecurity,
+    GovernanceSecurityError,
+)
+
+# =============================================================================
+# Governance Decision Boundary
+# =============================================================================
+
+from src.governance.governance_decision_boundary import (
+    GovernanceDecisionBoundary,
+    GovernanceDecisionBoundaryError,
+)
+
+# =============================================================================
 # Stable Public Exports
 # =============================================================================
 
@@ -86,4 +104,8 @@ __all__ = [
     "GovernanceAuditEntry",
     "GovernanceCompliance",
     "GovernanceComplianceError",
+    "GovernanceSecurity",
+    "GovernanceSecurityError",
+    "GovernanceDecisionBoundary",
+    "GovernanceDecisionBoundaryError",
 ]
