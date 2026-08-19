@@ -14,16 +14,21 @@ Phase 4.6A - Governed Execution Boundary
 
 Responsibilities:
 - Accept an explicit governed execution request.
-- Delegate authorization to GovernanceAuthorization.
-- Record the authorization decision through GovernanceAudit.
-- Execute the action only when authorization succeeds.
-- Preserve the existing ExecutionManager as the execution mechanism.
+- Submit the request to GovernanceDecisionBoundary.
+- Prevent execution when governance denies the request.
+- Delegate successful execution to ExecutionManager.
+- Preserve the existing public execute() and authorize() APIs.
+- Preserve existing execution result and error behavior as closely as
+  possible while using GovernanceDecisionBoundary as the single
+  governance gate.
 
 This component does not:
 - Implement governance policy.
 - Store permissions.
 - Implement authorization rules.
 - Implement audit storage.
+- Implement security rules.
+- Implement compliance rules.
 - Register agents.
 - Execute agents directly.
 
@@ -43,9 +48,10 @@ from typing import Any
 # Local Imports
 # =============================================================================
 
-from src.governance.governance_audit import GovernanceAudit
-from src.governance.governance_authorization import GovernanceAuthorization
 from src.governance.governance_contracts import GovernanceRequest
+from src.governance.governance_decision_boundary import (
+    GovernanceDecisionBoundary,
+)
 from src.orchestration.execution_manager import ExecutionManager
 
 
@@ -69,35 +75,32 @@ class GovernedExecutionError(ValueError):
 
 class GovernedExecution:
     """
-    Governed execution boundary for orchestration actions.
+    Thin governed execution boundary for orchestration actions.
 
-    The component coordinates:
+    GovernanceDecisionBoundary is the single governance gate.
 
-        GovernanceAuthorization
-                |
-                v
-        GovernanceDecision
-                |
-                v
-        GovernanceAudit
-                |
-                v
-        ExecutionManager
-                |
-                v
-              Agent
+    The governance decision boundary is responsible for the complete
+    governance decision process, including:
 
-    Authorization is performed before execution.
+    - security,
+    - compliance,
+    - authorization,
+    - audit.
 
-    A denied authorization decision is audited and execution does not occur.
+    GovernedExecution is responsible only for:
 
-    An allowed authorization decision is audited before execution begins.
+    - constructing the GovernanceRequest,
+    - submitting the request to GovernanceDecisionBoundary,
+    - validating the returned governance decision,
+    - preventing execution when the decision is denied,
+    - delegating successful execution to ExecutionManager.
+
+    The existing public execute() and authorize() APIs are preserved.
     """
 
     def __init__(
         self,
-        authorization: GovernanceAuthorization,
-        audit: GovernanceAudit,
+        decision_boundary: GovernanceDecisionBoundary,
         execution_manager: ExecutionManager,
     ) -> None:
         """
@@ -105,11 +108,9 @@ class GovernedExecution:
 
         Parameters
         ----------
-        authorization : GovernanceAuthorization
-            Governance Platform authorization component.
-
-        audit : GovernanceAudit
-            Governance decision audit component.
+        decision_boundary : GovernanceDecisionBoundary
+            The single governance decision boundary used as the
+            governance gate.
 
         execution_manager : ExecutionManager
             Existing orchestration execution manager.
@@ -120,14 +121,9 @@ class GovernedExecution:
             If any required dependency is None.
         """
 
-        if authorization is None:
+        if decision_boundary is None:
             raise GovernedExecutionError(
-                "authorization must not be None."
-            )
-
-        if audit is None:
-            raise GovernedExecutionError(
-                "audit must not be None."
+                "decision_boundary must not be None."
             )
 
         if execution_manager is None:
@@ -135,8 +131,7 @@ class GovernedExecution:
                 "execution_manager must not be None."
             )
 
-        self._authorization = authorization
-        self._audit = audit
+        self._decision_boundary = decision_boundary
         self._execution_manager = execution_manager
 
     # =========================================================================
@@ -154,13 +149,15 @@ class GovernedExecution:
         """
         Authorize, audit, and execute an action.
 
+        GovernanceDecisionBoundary is the only governance gate.
+
         Parameters
         ----------
         action : str
             Action being requested.
 
         request : Any
-            Request passed to the existing ExecutionManager.
+            Request passed unchanged to the existing ExecutionManager.
 
         subject : str
             Identity requesting the action.
@@ -179,14 +176,15 @@ class GovernedExecution:
         Raises
         ------
         GovernedExecutionError
-            If the request is invalid or authorization is denied.
+            If the request is invalid, the governance decision fails,
+            the governance decision is invalid, the action is denied,
+            or execution fails.
 
         Notes
         -----
-        Authorization always occurs before execution.
+        Governance evaluation always occurs before execution.
 
-        Every authorization decision is recorded in GovernanceAudit,
-        including denied decisions.
+        Audit responsibilities remain inside GovernanceDecisionBoundary.
         """
 
         governance_request = self._build_governance_request(
@@ -196,37 +194,7 @@ class GovernedExecution:
             context=context,
         )
 
-        try:
-            decision = self._authorization.authorize(
-                governance_request
-            )
-        except Exception as exc:
-            raise GovernedExecutionError(
-                "Governance authorization failed."
-            ) from exc
-
-        if not isinstance(decision, dict):
-            raise GovernedExecutionError(
-                "Governance authorization must return a decision dictionary."
-            )
-
-        required_fields = {
-            "action",
-            "allowed",
-            "reason",
-        }
-
-        if not required_fields.issubset(decision):
-            raise GovernedExecutionError(
-                "Governance authorization returned an invalid decision."
-            )
-
-        try:
-            self._audit.record(decision)
-        except Exception as exc:
-            raise GovernedExecutionError(
-                "Governance audit recording failed."
-            ) from exc
+        decision = self._evaluate_governance(governance_request)
 
         if not decision["allowed"]:
             raise GovernedExecutionError(
@@ -257,7 +225,9 @@ class GovernedExecution:
         """
         Determine whether an action is authorized without executing it.
 
-        The authorization decision is recorded in the audit trail.
+        GovernanceDecisionBoundary is the only governance gate.
+
+        Audit responsibilities remain inside GovernanceDecisionBoundary.
 
         Parameters
         ----------
@@ -276,12 +246,14 @@ class GovernedExecution:
         Returns
         -------
         bool
-            True if authorized, otherwise False.
+            True if the governance boundary allows the action,
+            otherwise False.
 
         Raises
         ------
         GovernedExecutionError
-            If authorization or audit recording fails.
+            If the governance decision boundary fails or returns
+            an invalid decision.
         """
 
         governance_request = self._build_governance_request(
@@ -291,18 +263,40 @@ class GovernedExecution:
             context=context,
         )
 
+        decision = self._evaluate_governance(governance_request)
+
+        return bool(decision["allowed"])
+
+    # =========================================================================
+    # Governance Evaluation
+    # =========================================================================
+
+    def _evaluate_governance(
+        self,
+        governance_request: GovernanceRequest,
+    ) -> dict[str, Any]:
+        """
+        Evaluate a governance request through the single governance gate.
+
+        This method deliberately contains no policy, permission,
+        security, compliance, or audit logic.
+
+        All of those responsibilities belong to
+        GovernanceDecisionBoundary.
+        """
+
         try:
-            decision = self._authorization.authorize(
+            decision = self._decision_boundary.evaluate(
                 governance_request
             )
         except Exception as exc:
             raise GovernedExecutionError(
-                "Governance authorization failed."
+                "Governance decision boundary failed."
             ) from exc
 
         if not isinstance(decision, dict):
             raise GovernedExecutionError(
-                "Governance authorization must return a decision dictionary."
+                "Governance decision boundary must return a decision dictionary."
             )
 
         required_fields = {
@@ -313,17 +307,10 @@ class GovernedExecution:
 
         if not required_fields.issubset(decision):
             raise GovernedExecutionError(
-                "Governance authorization returned an invalid decision."
+                "Governance decision boundary returned an invalid decision."
             )
 
-        try:
-            self._audit.record(decision)
-        except Exception as exc:
-            raise GovernedExecutionError(
-                "Governance audit recording failed."
-            ) from exc
-
-        return bool(decision["allowed"])
+        return decision
 
     # =========================================================================
     # Governance Request Construction
@@ -338,6 +325,10 @@ class GovernedExecution:
     ) -> GovernanceRequest:
         """
         Validate and construct a GovernanceRequest.
+
+        Input normalization and validation remain here because they
+        belong to the governed execution boundary rather than to the
+        individual governance mechanisms.
         """
 
         if not isinstance(action, str):
@@ -378,8 +369,10 @@ class GovernedExecution:
 
         if context is None:
             normalized_context: dict[str, Any] = {}
+
         elif isinstance(context, dict):
             normalized_context = dict(context)
+
         else:
             raise GovernedExecutionError(
                 "context must be a dictionary."
@@ -404,12 +397,18 @@ if __name__ == "__main__":
     from src.governance.governance_authorization import (
         GovernanceAuthorization,
     )
+    from src.governance.governance_compliance import (
+        GovernanceCompliance,
+    )
     from src.governance.governance_permissions import (
         GovernancePermission,
         GovernancePermissions,
     )
     from src.governance.governance_policy_engine import (
         GovernancePolicyEngine,
+    )
+    from src.governance.governance_security import (
+        GovernanceSecurity,
     )
     from src.orchestration.agent_registry import AgentRegistry
     from src.orchestration.governance import Governance
@@ -474,13 +473,19 @@ if __name__ == "__main__":
 
     audit = GovernanceAudit()
 
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
     # -------------------------------------------------------------------------
     # Build governed execution boundary
     # -------------------------------------------------------------------------
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 

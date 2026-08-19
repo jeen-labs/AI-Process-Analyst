@@ -13,7 +13,10 @@ Phase 4.6A - Governed Execution Boundary
 
 Coverage:
 - Dependency validation
-- Governance request validation
+- Governance request construction
+- GovernanceDecisionBoundary integration
+- Security integration
+- Compliance integration
 - Authorization integration
 - Permission integration
 - Policy integration
@@ -24,6 +27,8 @@ Coverage:
 - Request preservation
 - Context handling
 - Deterministic behaviour
+- Audit ordering
+- Governance failure handling
 """
 
 from typing import Any
@@ -34,12 +39,25 @@ from src.governance.governance_audit import GovernanceAudit
 from src.governance.governance_authorization import (
     GovernanceAuthorization,
 )
+from src.governance.governance_compliance import (
+    GovernanceCompliance,
+)
+from src.governance.governance_contracts import (
+    GovernanceDecision,
+    GovernanceRequest,
+)
+from src.governance.governance_decision_boundary import (
+    GovernanceDecisionBoundary,
+)
 from src.governance.governance_permissions import (
     GovernancePermission,
     GovernancePermissions,
 )
 from src.governance.governance_policy_engine import (
     GovernancePolicyEngine,
+)
+from src.governance.governance_security import (
+    GovernanceSecurity,
 )
 from src.orchestration.agent_registry import AgentRegistry
 from src.orchestration.execution_manager import ExecutionManager
@@ -51,7 +69,7 @@ from src.orchestration.governed_execution import (
 
 
 # =============================================================================
-# Test Agent
+# Test Agents
 # =============================================================================
 
 
@@ -80,6 +98,8 @@ class NonExecutableAgent:
     """
     Registered object without an execute method.
     """
+
+    pass
 
 
 # =============================================================================
@@ -133,8 +153,33 @@ def authorization(
 
 
 @pytest.fixture
+def security() -> GovernanceSecurity:
+    return GovernanceSecurity()
+
+
+@pytest.fixture
+def compliance() -> GovernanceCompliance:
+    return GovernanceCompliance()
+
+
+@pytest.fixture
 def audit() -> GovernanceAudit:
     return GovernanceAudit()
+
+
+@pytest.fixture
+def decision_boundary(
+    security: GovernanceSecurity,
+    compliance: GovernanceCompliance,
+    authorization: GovernanceAuthorization,
+    audit: GovernanceAudit,
+) -> GovernanceDecisionBoundary:
+    return GovernanceDecisionBoundary(
+        security=security,
+        compliance=compliance,
+        authorization=authorization,
+        audit=audit,
+    )
 
 
 @pytest.fixture
@@ -161,13 +206,11 @@ def execution_manager(
 
 @pytest.fixture
 def governed_execution(
-    authorization: GovernanceAuthorization,
-    audit: GovernanceAudit,
+    decision_boundary: GovernanceDecisionBoundary,
     execution_manager: ExecutionManager,
 ) -> GovernedExecution:
     return GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -180,7 +223,9 @@ def governed_execution(
 def test_governed_execution_initialises(
     governed_execution: GovernedExecution,
 ):
-    """GovernedExecution should initialise with valid dependencies."""
+    """
+    GovernedExecution should initialise with valid dependencies.
+    """
 
     assert isinstance(
         governed_execution,
@@ -188,53 +233,36 @@ def test_governed_execution_initialises(
     )
 
 
-def test_governed_execution_rejects_none_authorization(
-    audit: GovernanceAudit,
+def test_governed_execution_rejects_none_decision_boundary(
     execution_manager: ExecutionManager,
 ):
-    """Authorization dependency must not be None."""
+    """
+    Decision boundary dependency must not be None.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
-        match="authorization must not be None",
+        match="decision_boundary must not be None",
     ):
         GovernedExecution(
-            authorization=None,
-            audit=audit,
-            execution_manager=execution_manager,
-        )
-
-
-def test_governed_execution_rejects_none_audit(
-    authorization: GovernanceAuthorization,
-    execution_manager: ExecutionManager,
-):
-    """Audit dependency must not be None."""
-
-    with pytest.raises(
-        GovernedExecutionError,
-        match="audit must not be None",
-    ):
-        GovernedExecution(
-            authorization=authorization,
-            audit=None,
+            decision_boundary=None,
             execution_manager=execution_manager,
         )
 
 
 def test_governed_execution_rejects_none_execution_manager(
-    authorization: GovernanceAuthorization,
-    audit: GovernanceAudit,
+    decision_boundary: GovernanceDecisionBoundary,
 ):
-    """Execution manager dependency must not be None."""
+    """
+    Execution manager dependency must not be None.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
         match="execution_manager must not be None",
     ):
         GovernedExecution(
-            authorization=authorization,
-            audit=audit,
+            decision_boundary=decision_boundary,
             execution_manager=None,
         )
 
@@ -248,7 +276,9 @@ def test_governed_execution_authorizes_and_executes(
     governed_execution: GovernedExecution,
     agent: ExampleAgent,
 ):
-    """Authorized requests should execute the registered agent."""
+    """
+    Authorized requests should execute the registered agent.
+    """
 
     result = governed_execution.execute(
         action="process_analysis",
@@ -272,7 +302,9 @@ def test_governed_execution_records_allowed_decision(
     governed_execution: GovernedExecution,
     audit: GovernanceAudit,
 ):
-    """Allowed authorization decisions should be audited."""
+    """
+    Allowed governance decisions should be audited.
+    """
 
     governed_execution.execute(
         action="process_analysis",
@@ -297,7 +329,9 @@ def test_governed_execution_records_allowed_decision(
 def test_governed_execution_preserves_request(
     governed_execution: GovernedExecution,
 ):
-    """The original request object should reach the agent unchanged."""
+    """
+    The original request object should reach the agent unchanged.
+    """
 
     request = {
         "document": "customer onboarding",
@@ -326,7 +360,9 @@ def test_governed_execution_denies_policy_blocked_action(
     permissions: GovernancePermissions,
     agent: ExampleAgent,
 ):
-    """Policy denial must prevent execution."""
+    """
+    Policy denial must prevent execution.
+    """
 
     registry.register(
         "process_analysis",
@@ -342,14 +378,20 @@ def test_governed_execution_denies_policy_blocked_action(
         permissions=permissions,
     )
 
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
     execution_manager = ExecutionManager(
         agent_registry=registry,
         governance=legacy_governance,
     )
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -383,7 +425,9 @@ def test_governed_execution_denies_missing_permission(
     policy_engine: GovernancePolicyEngine,
     agent: ExampleAgent,
 ):
-    """Missing subject permission must prevent execution."""
+    """
+    Missing subject permission must prevent execution.
+    """
 
     registry.register(
         "process_analysis",
@@ -397,14 +441,20 @@ def test_governed_execution_denies_missing_permission(
         permissions=permissions,
     )
 
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
     execution_manager = ExecutionManager(
         agent_registry=registry,
         governance=legacy_governance,
     )
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -432,12 +482,12 @@ def test_governed_execution_denies_missing_permission(
 
 
 def test_denied_action_never_reaches_execution_manager(
-    authorization: GovernanceAuthorization,
+    decision_boundary: GovernanceDecisionBoundary,
     audit: GovernanceAudit,
 ):
     """
-    A denied authorization must prevent the execution manager
-    from being called.
+    A denied governance decision must prevent the execution
+    manager from being called.
     """
 
     class TrackingExecutionManager:
@@ -455,20 +505,28 @@ def test_denied_action_never_reaches_execution_manager(
 
             return request
 
+    policy_engine = GovernancePolicyEngine(
+        allowed_actions=set()
+    )
+
     permissions = GovernancePermissions()
 
     authorization = GovernanceAuthorization(
-        policy_engine=GovernancePolicyEngine(
-            allowed_actions=set()
-        ),
+        policy_engine=policy_engine,
         permissions=permissions,
+    )
+
+    denied_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
     )
 
     execution_manager = TrackingExecutionManager()
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=denied_boundary,
         execution_manager=execution_manager,
     )
 
@@ -495,7 +553,9 @@ def test_authorize_returns_true_without_execution(
     agent: ExampleAgent,
     audit: GovernanceAudit,
 ):
-    """authorize() should not execute the agent."""
+    """
+    authorize() should not execute the agent.
+    """
 
     result = governed_execution.authorize(
         action="process_analysis",
@@ -514,7 +574,9 @@ def test_authorize_returns_false_for_policy_denial(
     audit: GovernanceAudit,
     execution_manager: ExecutionManager,
 ):
-    """authorize() should return False when policy denies the action."""
+    """
+    authorize() should return False when policy denies the action.
+    """
 
     authorization = GovernanceAuthorization(
         policy_engine=GovernancePolicyEngine(
@@ -523,9 +585,15 @@ def test_authorize_returns_false_for_policy_denial(
         permissions=GovernancePermissions(),
     )
 
-    governed_execution = GovernedExecution(
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
         authorization=authorization,
         audit=audit,
+    )
+
+    governed_execution = GovernedExecution(
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -559,7 +627,9 @@ def test_governed_execution_rejects_invalid_action(
     governed_execution: GovernedExecution,
     action,
 ):
-    """Action must be a non-empty string."""
+    """
+    Action must be a non-empty string.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -584,7 +654,9 @@ def test_governed_execution_rejects_empty_action(
     governed_execution: GovernedExecution,
     action: str,
 ):
-    """Empty actions must be rejected."""
+    """
+    Empty actions must be rejected.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -601,7 +673,9 @@ def test_governed_execution_rejects_empty_action(
 def test_governed_execution_rejects_invalid_subject(
     governed_execution: GovernedExecution,
 ):
-    """Subject must be a non-empty string."""
+    """
+    Subject must be a non-empty string.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -618,7 +692,9 @@ def test_governed_execution_rejects_invalid_subject(
 def test_governed_execution_rejects_empty_subject(
     governed_execution: GovernedExecution,
 ):
-    """Empty subject must be rejected."""
+    """
+    Empty subject must be rejected.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -635,7 +711,9 @@ def test_governed_execution_rejects_empty_subject(
 def test_governed_execution_rejects_invalid_resource(
     governed_execution: GovernedExecution,
 ):
-    """Resource must be a non-empty string."""
+    """
+    Resource must be a non-empty string.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -652,7 +730,9 @@ def test_governed_execution_rejects_invalid_resource(
 def test_governed_execution_rejects_empty_resource(
     governed_execution: GovernedExecution,
 ):
-    """Empty resource must be rejected."""
+    """
+    Empty resource must be rejected.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -669,7 +749,9 @@ def test_governed_execution_rejects_empty_resource(
 def test_governed_execution_rejects_invalid_context(
     governed_execution: GovernedExecution,
 ):
-    """Context must be a dictionary when supplied."""
+    """
+    Context must be a dictionary when supplied.
+    """
 
     with pytest.raises(
         GovernedExecutionError,
@@ -693,7 +775,9 @@ def test_governed_execution_normalises_governance_fields(
     governed_execution: GovernedExecution,
     audit: GovernanceAudit,
 ):
-    """Action, subject, and resource should be stripped."""
+    """
+    Action, subject, and resource should be stripped.
+    """
 
     governed_execution.execute(
         action="  process_analysis  ",
@@ -716,7 +800,9 @@ def test_governed_execution_accepts_context(
     governed_execution: GovernedExecution,
     audit: GovernanceAudit,
 ):
-    """Governed execution should accept additional context."""
+    """
+    Governed execution should accept additional context.
+    """
 
     result = governed_execution.execute(
         action="process_analysis",
@@ -737,7 +823,9 @@ def test_governed_execution_accepts_context(
 def test_governed_execution_does_not_mutate_context(
     governed_execution: GovernedExecution,
 ):
-    """The caller's context dictionary should remain unchanged."""
+    """
+    The caller's context dictionary should remain unchanged.
+    """
 
     context = {
         "source": "test",
@@ -759,6 +847,124 @@ def test_governed_execution_does_not_mutate_context(
 
 
 # =============================================================================
+# Security Boundary
+# =============================================================================
+
+
+def test_governed_execution_uses_security_boundary(
+    audit: GovernanceAudit,
+    execution_manager: ExecutionManager,
+):
+    """
+    Invalid governance requests must fail through the security
+    boundary before execution.
+    """
+
+    authorization = GovernanceAuthorization(
+        policy_engine=GovernancePolicyEngine(
+            allowed_actions={
+                "process_analysis",
+            }
+        ),
+        permissions=GovernancePermissions(),
+    )
+
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
+    governed_execution = GovernedExecution(
+        decision_boundary=decision_boundary,
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        GovernedExecutionError,
+        match="action must not be empty",
+    ):
+        governed_execution.execute(
+            action="   ",
+            request="Analyse onboarding.",
+            subject="analyst",
+            resource="customer_onboarding",
+        )
+
+
+# =============================================================================
+# Compliance Boundary
+# =============================================================================
+
+
+def test_governed_execution_uses_compliance_boundary(
+    audit: GovernanceAudit,
+    execution_manager: ExecutionManager,
+):
+    """
+    The governed execution boundary must use the compliance
+    stage through GovernanceDecisionBoundary.
+    """
+
+    class TrackingCompliance(GovernanceCompliance):
+        def __init__(self):
+            self.calls = 0
+
+        def evaluate(
+            self,
+            request: GovernanceRequest,
+        ) -> GovernanceDecision:
+            self.calls += 1
+
+            return GovernanceDecision(
+                action=request["action"],
+                allowed=False,
+                reason="Compliance test denial.",
+            )
+
+    compliance = TrackingCompliance()
+
+    authorization = GovernanceAuthorization(
+        policy_engine=GovernancePolicyEngine(
+            allowed_actions={
+                "process_analysis",
+            }
+        ),
+        permissions=GovernancePermissions(),
+    )
+
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=compliance,
+        authorization=authorization,
+        audit=audit,
+    )
+
+    governed_execution = GovernedExecution(
+        decision_boundary=decision_boundary,
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        GovernedExecutionError,
+        match="Compliance test denial",
+    ):
+        governed_execution.execute(
+            action="process_analysis",
+            request="Analyse onboarding.",
+            subject="analyst",
+            resource="customer_onboarding",
+        )
+
+    assert compliance.calls == 1
+
+    assert audit.count() == 1
+
+    assert audit.entries()[0].allowed is False
+
+
+# =============================================================================
 # Non-Executable Agent
 # =============================================================================
 
@@ -769,11 +975,20 @@ def test_governed_execution_rejects_non_executable_agent(
     authorization: GovernanceAuthorization,
     audit: GovernanceAudit,
 ):
-    """Authorization should succeed but execution should fail."""
+    """
+    Authorization should succeed but execution should fail.
+    """
 
     registry.register(
         "process_analysis",
         NonExecutableAgent(),
+    )
+
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
     )
 
     execution_manager = ExecutionManager(
@@ -782,8 +997,7 @@ def test_governed_execution_rejects_non_executable_agent(
     )
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -798,7 +1012,7 @@ def test_governed_execution_rejects_non_executable_agent(
             resource="customer_onboarding",
         )
 
-    # Authorization happened and was audited even though execution failed.
+    # Governance happened and was audited even though execution failed.
     assert audit.count() == 1
 
     assert audit.entries()[0].allowed is True
@@ -813,7 +1027,9 @@ def test_governed_execution_is_deterministic(
     governed_execution: GovernedExecution,
     audit: GovernanceAudit,
 ):
-    """Repeated governed execution should be deterministic."""
+    """
+    Repeated governed execution should be deterministic.
+    """
 
     first = governed_execution.execute(
         action="process_analysis",
@@ -852,7 +1068,7 @@ def test_governed_execution_audits_before_execution(
     audit: GovernanceAudit,
 ):
     """
-    The authorization decision must be audited before the agent executes.
+    The governance decision must be audited before the agent executes.
     """
 
     class TrackingAgent:
@@ -875,14 +1091,20 @@ def test_governed_execution_audits_before_execution(
         agent,
     )
 
+    decision_boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
     execution_manager = ExecutionManager(
         agent_registry=registry,
         governance=Governance(),
     )
 
     governed_execution = GovernedExecution(
-        authorization=authorization,
-        audit=audit,
+        decision_boundary=decision_boundary,
         execution_manager=execution_manager,
     )
 
@@ -894,3 +1116,76 @@ def test_governed_execution_audits_before_execution(
     )
 
     assert agent.audit_count_at_execution == 1
+
+
+# =============================================================================
+# Governance Decision Boundary Failure
+# =============================================================================
+
+
+def test_governed_execution_rejects_invalid_governance_decision(
+    execution_manager: ExecutionManager,
+):
+    """
+    GovernedExecution must fail closed when the decision boundary
+    returns an invalid decision.
+    """
+
+    class InvalidDecisionBoundary:
+        def evaluate(
+            self,
+            request: GovernanceRequest,
+        ):
+            return {
+                "action": request["action"],
+            }
+
+    governed_execution = GovernedExecution(
+        decision_boundary=InvalidDecisionBoundary(),
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        GovernedExecutionError,
+        match="Governance decision boundary returned an invalid decision",
+    ):
+        governed_execution.execute(
+            action="process_analysis",
+            request="Analyse onboarding.",
+            subject="analyst",
+            resource="customer_onboarding",
+        )
+
+
+def test_governed_execution_handles_decision_boundary_failure(
+    execution_manager: ExecutionManager,
+):
+    """
+    GovernedExecution must convert decision-boundary failures into
+    GovernedExecutionError.
+    """
+
+    class FailingDecisionBoundary:
+        def evaluate(
+            self,
+            request: GovernanceRequest,
+        ):
+            raise RuntimeError(
+                "simulated governance failure"
+            )
+
+    governed_execution = GovernedExecution(
+        decision_boundary=FailingDecisionBoundary(),
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        GovernedExecutionError,
+        match="Governance decision boundary failed",
+    ):
+        governed_execution.execute(
+            action="process_analysis",
+            request="Analyse onboarding.",
+            subject="analyst",
+            resource="customer_onboarding",
+        )
