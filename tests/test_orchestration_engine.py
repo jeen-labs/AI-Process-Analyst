@@ -14,6 +14,7 @@ Coverage:
 - Governance integration
 - Agent registry integration
 - Execution manager integration
+- Governed execution integration
 - End-to-end orchestration
 - Planning-only behaviour
 - Governance checks
@@ -53,6 +54,7 @@ class ExampleAgent:
         request: Any,
     ) -> dict[str, Any]:
         self.calls.append(request)
+
         return {
             "agent": "process_analysis",
             "request": request,
@@ -287,9 +289,11 @@ def test_create_plan_delegates_to_planner(
     )
 
     assert isinstance(plan, dict)
+
     assert plan["request"] == (
         "Analyse customer onboarding."
     )
+
     assert plan["plan_type"] == "process_analysis"
 
 
@@ -316,6 +320,7 @@ def test_orchestrate_uses_planner_plan_type_as_action(
     )
 
     assert result["action"] == "process_analysis"
+
     assert agent.calls == [
         "Analyse customer onboarding."
     ]
@@ -509,6 +514,93 @@ def test_orchestrate_returns_complete_result(
 
 
 # =============================================================================
+# Governed Execution Integration
+# =============================================================================
+
+def test_orchestrate_uses_governed_execution_when_supplied(
+    planner: Planner,
+    registry: AgentRegistry,
+    governance: Governance,
+    agent: ExampleAgent,
+):
+    registry.register(
+        "process_analysis",
+        agent,
+    )
+
+    execution_manager = ExecutionManager(
+        agent_registry=registry,
+        governance=governance,
+    )
+
+    class TrackingGovernedExecution:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, Any]] = []
+
+        def execute_with_decision(
+            self,
+            action: str,
+            request: Any,
+            subject: str,
+            resource: str,
+            context: dict[str, Any] | None = None,
+        ) -> tuple[dict[str, Any], dict[str, Any]]:
+            self.calls.append(
+                {
+                    "action": action,
+                    "request": request,
+                    "subject": subject,
+                    "resource": resource,
+                }
+            )
+
+            governance_decision = {
+                "action": action,
+                "allowed": True,
+                "reason": "Action permitted.",
+            }
+
+            result = {
+                "agent": "process_analysis",
+                "request": request,
+                "status": "executed",
+            }
+
+            return governance_decision, result
+
+    governed_execution = TrackingGovernedExecution()
+
+    engine = OrchestrationEngine(
+        planner=planner,
+        agent_registry=registry,
+        governance=governance,
+        execution_manager=execution_manager,
+        governed_execution=governed_execution,
+    )
+
+    result = engine.orchestrate(
+        "Analyse customer onboarding."
+    )
+
+    assert result["result"] == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }
+
+    assert governed_execution.calls == [
+        {
+            "action": "process_analysis",
+            "request": "Analyse customer onboarding.",
+            "subject": "orchestration",
+            "resource": "process_analysis",
+        }
+    ]
+
+    assert agent.calls == []
+
+
+# =============================================================================
 # Safety / Non-Execution Checks
 # =============================================================================
 
@@ -603,6 +695,7 @@ def test_orchestration_supports_multiple_requests(
         "Analyse invoice approval.",
     ]
 
+
 # =============================================================================
 # Integration-Level Error Handling
 # =============================================================================
@@ -686,7 +779,6 @@ def test_orchestrate_wraps_planner_integration_failure(
     registry: AgentRegistry,
     governance: Governance,
 ):
-
     execution_manager = ExecutionManager(
         agent_registry=registry,
         governance=FailingGovernance(),
@@ -716,19 +808,6 @@ def test_orchestrate_wraps_planner_integration_failure(
         exc_info.value.__cause__
     ) == "planner integration failure"
 
-
-def test_orchestrate_wraps_governance_integration_failure(
-    registry: AgentRegistry,
-):
-    registry.register(
-        "process_analysis",
-        ExampleAgent(),
-    )
-
-    execution_manager = ExecutionManager(
-        agent_registry=registry,
-        governance=Governance(),
-    )
 
 def test_orchestrate_wraps_governance_integration_failure(
     registry: AgentRegistry,
@@ -851,6 +930,7 @@ def test_orchestrate_preserves_existing_orchestration_errors(
         engine.orchestrate(
             "Analyse customer onboarding."
         )
+
 
 # =============================================================================
 # Phase 3.11.3 - Execution / Result Contract

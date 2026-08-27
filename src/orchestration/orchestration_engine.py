@@ -13,65 +13,68 @@ Provide the top-level orchestration engine that integrates:
     Agent Registry
         |
         v
-    Governance
+    Governance / GovernedExecution
         |
         v
     Execution Manager
+        |
+        v
+    Agent
 
 Phase:
 Milestone 3 - Enterprise AI Orchestration Layer
 Phase 3.10 - Integrate Planner, Agent Registry, Governance,
 and Execution Manager
 
+Milestone 4:
+Phase 4.10 - Integrate Governance Platform with Orchestration
+
 Responsibilities:
 - Accept an orchestration request
 - Validate the request
 - Generate an execution plan through Planner
 - Determine the action represented by the plan
-- Verify that the action is governed
-- Execute the action through ExecutionManager
+- Route execution through GovernedExecution when available
+- Preserve the actual governance decision returned by GovernedExecution
+- Fall back to ExecutionManager governance when GovernedExecution is not supplied
 - Return a deterministic orchestration result
 
-This component does NOT:
-- Implement planning logic
-- Register agents
-- Implement governance policies
-- Execute agents directly
-- Call an LLM directly
-- Build prompts
-- Parse LLM responses
+Authoritative Milestone 4 execution path:
 
-Those responsibilities remain delegated to the appropriate components.
+    Request
+       |
+       v
+    OrchestrationEngine
+       |
+       v
+    Planner
+       |
+       v
+    GovernedExecution
+       |
+       v
+    GovernanceDecisionBoundary
+       |
+       +----> Security
+       |
+       +----> Compliance
+       |
+       +----> Authorization
+       |
+       +----> Audit
+       |
+       v
+    ExecutionManager
+       |
+       v
+    Agent
 
-Architecture:
+Important:
+When GovernedExecution is supplied, the orchestration engine MUST NOT
+perform a separate legacy governance check before execution.
 
-Request
-   |
-   v
-OrchestrationEngine
-   |
-   +----> Planner
-   |          |
-   |          v
-   |       Execution Plan
-   |
-   +----> Governance
-   |          |
-   |          v
-   |       Policy Decision
-   |
-   +----> AgentRegistry
-   |          |
-   |          v
-   |       Registered Agent
-   |
-   +----> ExecutionManager
-              |
-              v
-           Result
-
-The engine is intentionally thin. It coordinates existing orchestration
-components rather than duplicating their responsibilities.
+The GovernanceDecisionBoundary invoked by GovernedExecution is the
+authoritative governance decision point for the orchestration execution.
 """
 
 # =============================================================================
@@ -90,6 +93,10 @@ from src.orchestration.contracts import OrchestrationResult
 from src.orchestration.execution_manager import (
     ExecutionManager,
     ExecutionManagerError,
+)
+from src.orchestration.governed_execution import (
+    GovernedExecution,
+    GovernedExecutionError,
 )
 from src.orchestration.governance import Governance
 from src.orchestration.planner import Planner
@@ -117,8 +124,16 @@ class OrchestrationEngine:
     """
     Top-level coordinator for the enterprise orchestration layer.
 
-    The engine integrates the Planner, AgentRegistry, Governance, and
-    ExecutionManager without duplicating their responsibilities.
+    The engine integrates:
+
+        Planner
+        AgentRegistry
+        Governance
+        ExecutionManager
+        GovernedExecution
+
+    During Milestone 4, GovernedExecution is the authoritative execution
+    boundary whenever it is supplied to the engine.
     """
 
     def __init__(
@@ -127,6 +142,7 @@ class OrchestrationEngine:
         agent_registry: AgentRegistry,
         governance: Governance,
         execution_manager: ExecutionManager,
+        governed_execution: GovernedExecution | None = None,
     ) -> None:
         """
         Initialise the orchestration engine.
@@ -140,10 +156,17 @@ class OrchestrationEngine:
             Registry containing executable agents.
 
         governance : Governance
-            Policy boundary used to approve or deny actions.
+            Legacy/direct governance component retained for compatibility
+            and non-execution helper methods.
 
         execution_manager : ExecutionManager
-            Component responsible for governed agent execution.
+            Component responsible for agent execution.
+
+        governed_execution : GovernedExecution | None
+            Milestone 4 governance boundary.
+
+            When supplied, orchestration execution uses this component as
+            the authoritative governance path.
 
         Raises
         ------
@@ -175,6 +198,7 @@ class OrchestrationEngine:
         self._agent_registry = agent_registry
         self._governance = governance
         self._execution_manager = execution_manager
+        self._governed_execution = governed_execution
 
     # =========================================================================
     # Public API
@@ -194,7 +218,7 @@ class OrchestrationEngine:
 
         Returns
         -------
-        dict[str, Any]
+        OrchestrationResult
             Structured orchestration result containing:
 
                 request
@@ -207,14 +231,27 @@ class OrchestrationEngine:
         ------
         OrchestrationEngineError
             If the request is invalid, a dependent orchestration component
-            fails, or the planned action cannot be executed.
+            fails, governance denies execution, or execution fails.
 
-        Notes
-        -----
-        This method establishes the integration-level error boundary for
-        the orchestration API. Component-specific exceptions are preserved
-        through exception chaining while callers receive the stable
-        OrchestrationEngineError type.
+        Governance behaviour
+        --------------------
+        If GovernedExecution is supplied:
+
+            Planner
+                ->
+            GovernedExecution.execute_with_decision()
+                ->
+            GovernanceDecisionBoundary
+                ->
+            ExecutionManager
+
+        The actual governance decision returned by the governance boundary
+        is preserved in the orchestration result.
+
+        No separate legacy governance check is performed in this path.
+
+        If GovernedExecution is not supplied, the engine falls back to the
+        existing ExecutionManager governance integration.
         """
 
         self._validate_request(request)
@@ -250,15 +287,60 @@ class OrchestrationEngine:
                 )
 
             # -----------------------------------------------------------------
-            # Phase 2: Governed Execution
+            # Phase 2: Authoritative Governance + Execution
+            # -----------------------------------------------------------------
+            #
+            # Milestone 4:
+            #
+            # GovernedExecution is the authoritative governance boundary.
+            #
+            # It performs:
+            #
+            #     GovernanceDecisionBoundary
+            #             |
+            #       +-----+-----+-----+
+            #       |           |     |
+            #    Security   Compliance Authorization
+            #       |
+            #      Audit
+            #
+            # and executes only when the resulting decision is allowed.
+            #
+            # execute_with_decision() is deliberately used here instead of
+            # execute(), because orchestration must preserve the ACTUAL
+            # governance decision in its returned result.
             # -----------------------------------------------------------------
 
-            governance_decision, result = (
-                self._execution_manager.execute_with_governance(
-                    normalized_action,
-                    normalized_request,
+            if self._governed_execution is not None:
+
+                governance_decision, result = (
+                    self._governed_execution.execute_with_decision(
+                        action=normalized_action,
+                        request=normalized_request,
+                        subject="orchestration",
+                        resource=normalized_action,
+                    )
                 )
-            )
+
+            # -----------------------------------------------------------------
+            # Legacy compatibility path
+            # -----------------------------------------------------------------
+            #
+            # This path is retained only for callers that construct an
+            # OrchestrationEngine without the Milestone 4 GovernedExecution
+            # dependency.
+            #
+            # When GovernedExecution exists, this branch is never reached.
+            # -----------------------------------------------------------------
+
+            else:
+
+                governance_decision, result = (
+                    self._execution_manager.execute_with_governance(
+                        normalized_action,
+                        normalized_request,
+                    )
+                )
 
             # -----------------------------------------------------------------
             # Phase 3: Structured Result
@@ -272,8 +354,17 @@ class OrchestrationEngine:
                 result=result,
             )
 
+        # ---------------------------------------------------------------------
+        # Stable orchestration error boundary
+        # ---------------------------------------------------------------------
+
         except OrchestrationEngineError:
             raise
+
+        except GovernedExecutionError as exc:
+            raise OrchestrationEngineError(
+                str(exc)
+            ) from exc
 
         except ExecutionManagerError as exc:
             raise OrchestrationEngineError(
@@ -327,7 +418,22 @@ class OrchestrationEngine:
         """
         Determine whether an action is permitted.
 
-        This method does not execute the action.
+        This is a compatibility/helper method.
+
+        IMPORTANT:
+        This method is NOT used by orchestrate() when GovernedExecution
+        is supplied.
+
+        The Milestone 4 authoritative execution path is:
+
+            orchestrate()
+                ->
+            GovernedExecution.execute_with_decision()
+                ->
+            GovernanceDecisionBoundary
+
+        This helper remains available for callers that explicitly want
+        to query the legacy Governance component.
         """
 
         if not isinstance(action, str):

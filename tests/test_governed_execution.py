@@ -32,6 +32,7 @@ Coverage:
 """
 
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -1189,3 +1190,120 @@ def test_governed_execution_handles_decision_boundary_failure(
             subject="analyst",
             resource="customer_onboarding",
         )
+
+# =============================================================================
+# Decision-Preserving Execution
+# =============================================================================
+
+
+def test_execute_with_decision_returns_actual_governance_decision(
+    governed_execution: GovernedExecution,
+) -> None:
+    """
+    execute_with_decision() must return the actual governance decision
+    together with the execution result.
+    """
+
+    decision, result = governed_execution.execute_with_decision(
+        action="process_analysis",
+        request="Analyse customer onboarding.",
+        subject="analyst",
+        resource="customer_onboarding",
+    )
+
+    assert decision == {
+        "action": "process_analysis",
+        "allowed": True,
+        "reason": (
+            "Action is authorized by governance policy and permissions."
+        ),
+    }
+
+    assert result == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }
+
+
+def test_execute_delegates_to_execute_with_decision(
+    governed_execution: GovernedExecution,
+) -> None:
+    """
+    Existing execute() must preserve its result-only API.
+    """
+
+    governed_execution.execute_with_decision = Mock(
+        return_value=(
+            {
+                "action": "process_analysis",
+                "allowed": True,
+                "reason": "Action permitted.",
+            },
+            {
+                "agent": "process_analysis",
+                "request": "Analyse customer onboarding.",
+                "status": "executed",
+            },
+        )
+    )
+
+    result = governed_execution.execute(
+        action="process_analysis",
+        request="Analyse customer onboarding.",
+        subject="analyst",
+        resource="customer_onboarding",
+    )
+
+    assert result == {
+        "agent": "process_analysis",
+        "request": "Analyse customer onboarding.",
+        "status": "executed",
+    }
+
+    governed_execution.execute_with_decision.assert_called_once()
+
+
+def test_execute_with_decision_does_not_execute_when_denied(
+    audit: GovernanceAudit,
+    execution_manager: ExecutionManager,
+) -> None:
+    """
+    A denied governance decision must prevent execution.
+    """
+
+    authorization = GovernanceAuthorization(
+        policy_engine=GovernancePolicyEngine(
+            allowed_actions=set(),
+        ),
+        permissions=GovernancePermissions(),
+    )
+
+    boundary = GovernanceDecisionBoundary(
+        security=GovernanceSecurity(),
+        compliance=GovernanceCompliance(),
+        authorization=authorization,
+        audit=audit,
+    )
+
+    execution_manager.execute = Mock(
+        wraps=execution_manager.execute,
+    )
+
+    governed_execution = GovernedExecution(
+        decision_boundary=boundary,
+        execution_manager=execution_manager,
+    )
+
+    with pytest.raises(
+        GovernedExecutionError,
+        match="Action is denied by governance policy",
+    ):
+        governed_execution.execute_with_decision(
+            action="process_analysis",
+            request="Analyse customer onboarding.",
+            subject="analyst",
+            resource="customer_onboarding",
+        )
+
+    execution_manager.execute.assert_not_called()

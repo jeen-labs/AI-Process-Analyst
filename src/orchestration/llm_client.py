@@ -7,31 +7,43 @@ Module:
     orchestration.llm_client
 
 Purpose:
-    Provide the enterprise orchestration layer with a stable interface for
-    Large Language Model (LLM) execution.
+    Provide the enterprise orchestration layer with a stable, provider-
+    independent interface for Large Language Model execution.
 
 Responsibilities:
     - Accept a fully constructed prompt
-    - Delegate LLM execution to the configured LLM client
-    - Return the raw LLM response
-    - Keep orchestration concerns separate from provider implementation
-    - Provide basic input validation
-    - Preserve a provider-independent orchestration interface
+    - Delegate execution to a configured LLM provider/client
+    - Preserve the stable orchestration ``generate()`` API
+    - Support the enterprise BaseProvider contract
+    - Maintain backward compatibility with legacy clients exposing ``generate``
+    - Return the raw provider response
+    - Keep provider-specific implementation details outside orchestration
 
-Architecture:
-    Enterprise AI Orchestration Layer
+Architecture
+------------
 
-This component does NOT:
-    - Implement a specific LLM provider
-    - Manage provider-specific configuration
-    - Build prompts
-    - Parse LLM responses
-    - Normalize LLM responses
-    - Perform enterprise process enrichment
-    - Execute business rules
+                    Orchestration Layer
+                           |
+                           v
+                       LLMClient
+                           |
+              +------------+------------+
+              |                         |
+              v                         v
+        BaseProvider             Legacy Client
+              |                  / Test Double
+       +------+------+                  |
+       |      |      |                  |
+    OpenAI Gemini  Mock             generate()
+       |      |      |
+       +------+------+
+              |
+      generate_response()
 
-Provider-specific behavior remains in the provider layer and will be
-refactored separately in subsequent phases.
+The orchestration layer depends on this stable interface rather than directly
+depending on a specific AI service provider.
+
+Provider-specific behavior remains inside the provider layer.
 
 Phase:
     Milestone 3 - Enterprise AI Orchestration Layer
@@ -41,37 +53,39 @@ Author:
     Jeen Labs
 
 Version:
-    0.1.0
+    0.2.0
 
 Status:
     Development
 ===============================================================================
 """
 
-# =============================================================================
-# Standard Library Imports
-# =============================================================================
+from __future__ import annotations
 
 from typing import Any
 
 
-# =============================================================================
-# Classes
-# =============================================================================
-
-
 class LLMClient:
     """
-    Enterprise orchestration interface for LLM execution.
+    Stable enterprise orchestration interface for LLM execution.
 
-    The orchestration layer should depend on this interface rather than
-    directly depending on a specific LLM provider.
+    The underlying object may be:
+
+    1. A new enterprise provider implementing::
+
+           generate_response(prompt)
+
+    2. A legacy/test client implementing::
+
+           generate(prompt)
+
+    Supporting both forms allows the provider architecture to evolve without
+    breaking existing orchestration components or tests.
 
     Parameters
     ----------
-    client : Any
-        Underlying LLM client responsible for performing the actual model
-        invocation.
+    client:
+        Configured underlying provider/client.
     """
 
     def __init__(self, client: Any) -> None:
@@ -80,8 +94,8 @@ class LLMClient:
 
         Parameters
         ----------
-        client : Any
-            Underlying LLM execution client.
+        client:
+            Underlying LLM provider/client.
 
         Raises
         ------
@@ -100,19 +114,32 @@ class LLMClient:
     # Public API
     # =========================================================================
 
-    def generate(self, prompt: str) -> Any:
+    def generate(
+        self,
+        prompt: str,
+    ) -> Any:
         """
         Execute an LLM request using the supplied prompt.
 
+        The preferred enterprise provider contract is:
+
+            generate_response(prompt)
+
+        For backward compatibility, an underlying client exposing:
+
+            generate(prompt)
+
+        is also supported.
+
         Parameters
         ----------
-        prompt : str
+        prompt:
             Fully constructed prompt.
 
         Returns
         -------
         Any
-            Raw response returned by the underlying LLM client.
+            Raw response returned by the underlying provider/client.
 
         Raises
         ------
@@ -121,6 +148,10 @@ class LLMClient:
 
         ValueError
             If prompt is empty or contains only whitespace.
+
+        AttributeError
+            If the underlying object implements neither supported execution
+            method.
         """
 
         if not isinstance(prompt, str):
@@ -133,19 +164,58 @@ class LLMClient:
                 "Prompt cannot be empty."
             )
 
-        return self._client.generate(prompt)
+        # ---------------------------------------------------------------------
+        # Preferred enterprise provider contract
+        # ---------------------------------------------------------------------
+
+        generate_response = getattr(
+            self._client,
+            "generate_response",
+            None,
+        )
+
+        if callable(generate_response):
+
+            return generate_response(prompt)
+
+        # ---------------------------------------------------------------------
+        # Legacy compatibility contract
+        # ---------------------------------------------------------------------
+
+        generate = getattr(
+            self._client,
+            "generate",
+            None,
+        )
+
+        if callable(generate):
+
+            return generate(prompt)
+
+        # ---------------------------------------------------------------------
+        # Invalid underlying client
+        # ---------------------------------------------------------------------
+
+        raise AttributeError(
+            "Underlying LLM client must implement either "
+            "'generate_response(prompt)' or 'generate(prompt)'."
+        )
+
+    # =========================================================================
+    # Accessor
+    # =========================================================================
 
     def get_client(self) -> Any:
         """
-        Return the underlying LLM client.
+        Return the underlying provider/client.
 
-        This method is intentionally provided for controlled integration
-        during the migration from the legacy architecture.
+        This remains available during the migration from the legacy
+        architecture and for controlled dependency-injection scenarios.
 
         Returns
         -------
         Any
-            Underlying LLM client.
+            The original underlying provider/client.
         """
 
         return self._client
@@ -157,17 +227,23 @@ class LLMClient:
 
 if __name__ == "__main__":
 
-    class ExampleClient:
-        """Simple example client used for manual testing."""
+    class ExampleProvider:
+        """
+        Minimal provider example using the new enterprise contract.
+        """
 
-        def generate(self, prompt: str) -> str:
-            """Return a simple mock response."""
+        def generate_response(
+            self,
+            prompt: str,
+        ) -> str:
+            """
+            Return a deterministic example response.
+            """
 
             return f"LLM response for: {prompt}"
 
-
     client = LLMClient(
-        ExampleClient()
+        ExampleProvider()
     )
 
     response = client.generate(

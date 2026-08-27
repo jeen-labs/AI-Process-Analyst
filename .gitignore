@@ -74,11 +74,16 @@ dist/
 *.bak
 *.swp
 
-# Phase 3.11 inspection artifacts
+# -------------------------
+# Inspection Artifacts
+# -------------------------
 phase_3_11_files.txt
+repository_snapshot.txt
+make_snapshot.bat
 
 # -------------------------
 # Generated Reports (optional)
+# -------------------------
 # Uncomment if reports are generated automatically
 # reports/
 # output/
