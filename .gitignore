@@ -79,6 +79,7 @@ dist/
 # -------------------------
 phase_3_11_files.txt
 repository_snapshot.txt
+file_list.txt
 make_snapshot.bat
 
 # -------------------------
