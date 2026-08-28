@@ -100,6 +100,19 @@ from .process_kpi_prediction import (
 )
 
 # =============================================================================
+# Phase 5.7 - Process Optimization
+# =============================================================================
+
+from .process_optimization import (
+    OptimizationRecommendation,
+    ProcessOptimizationError,
+    ProcessOptimizationResult,
+    ProcessOptimizer,
+    optimize_process,
+    optimize_processes,
+)
+
+# =============================================================================
 # Public API
 # =============================================================================
 #
