@@ -86,6 +86,18 @@ from .process_performance import (
     ProcessPerformanceResult,
 )
 
+# =============================================================================
+# Phase 5.6 - KPI Prediction
+# =============================================================================
+
+from .process_kpi_prediction import (
+    KpiPrediction,
+    ProcessKpiPredictionError,
+    ProcessKpiPredictionResult,
+    ProcessKpiPredictor,
+    predict_kpi,
+    predict_kpis,
+)
 
 # =============================================================================
 # Public API
