@@ -113,6 +113,19 @@ from .process_optimization import (
 )
 
 # =============================================================================
+# Phase 5.8 - Digital Twin Foundation
+# =============================================================================
+
+from .process_digital_twin import (
+    DigitalTwinState,
+    DigitalTwinTransition,
+    ProcessDigitalTwin,
+    ProcessDigitalTwinError,
+    ProcessDigitalTwinSnapshot,
+    build_digital_twin,
+)
+
+# =============================================================================
 # Public API
 # =============================================================================
 #
