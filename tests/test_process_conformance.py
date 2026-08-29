@@ -478,3 +478,51 @@ def test_conformance_result_is_immutable() -> None:
 
     with pytest.raises(AttributeError):
         result.score = 0.5  # type: ignore[misc]
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_trace_conformance_result_rejects_non_numeric_score() -> None:
+    with pytest.raises(ProcessConformanceError):
+        TraceConformanceResult(
+            case_id="case-001",
+            score="1.0",  # type: ignore[arg-type]
+            conformant=True,
+        )
+
+
+def test_process_conformance_result_rejects_non_numeric_average_score() -> None:
+    trace_result = TraceConformanceResult(
+        case_id="case-001",
+        score=1.0,
+        conformant=True,
+    )
+
+    with pytest.raises(ProcessConformanceError):
+        ProcessConformanceResult(
+            process_id="proc-001",
+            trace_results=(trace_result,),
+            average_score="1.0",  # type: ignore[arg-type]
+            conformant_case_count=1,
+            non_conformant_case_count=0,
+        )
+
+
+def test_process_conformance_result_rejects_negative_case_count() -> None:
+    trace_result = TraceConformanceResult(
+        case_id="case-001",
+        score=1.0,
+        conformant=True,
+    )
+
+    with pytest.raises(ProcessConformanceError):
+        ProcessConformanceResult(
+            process_id="proc-001",
+            trace_results=(trace_result,),
+            average_score=1.0,
+            conformant_case_count=-1,
+            non_conformant_case_count=2,
+        )

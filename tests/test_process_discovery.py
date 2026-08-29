@@ -409,3 +409,49 @@ def test_process_discovery_public_exports_are_available() -> None:
     }
 
     assert set(process_discovery.__all__) == expected
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_discovered_process_model_rejects_non_integer_case_count() -> None:
+    with pytest.raises(ProcessDiscoveryError):
+        DiscoveredProcessModel(
+            activities=(),
+            transitions=(),
+            start_activities=(),
+            end_activities=(),
+            activity_frequencies=(),
+            case_count="1",  # type: ignore[arg-type]
+        )
+
+
+def test_discovered_process_model_rejects_invalid_activity_frequency_count() -> None:
+    with pytest.raises(ProcessDiscoveryError):
+        DiscoveredProcessModel(
+            activities=("receive",),
+            transitions=(),
+            start_activities=("receive",),
+            end_activities=("receive",),
+            activity_frequencies=(("receive", "1"),),  # type: ignore[arg-type]
+            case_count=1,
+        )
+
+
+def test_process_discovery_result_rejects_non_integer_source_case_count() -> None:
+    model = DiscoveredProcessModel(
+        activities=("receive",),
+        transitions=(),
+        start_activities=("receive",),
+        end_activities=("receive",),
+        activity_frequencies=(("receive", 1),),
+        case_count=1,
+    )
+
+    with pytest.raises(ProcessDiscoveryError):
+        ProcessDiscoveryResult(
+            model=model,
+            source_case_count="1",  # type: ignore[arg-type]
+        )

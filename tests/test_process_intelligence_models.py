@@ -28,6 +28,11 @@ def _timestamp(offset_seconds: int = 0) -> datetime:
     ) + timedelta(seconds=offset_seconds)
 
 
+# =============================================================================
+# Process Event
+# =============================================================================
+
+
 def test_process_event_can_be_created() -> None:
     event = ProcessEvent(
         case_id="case-001",
@@ -70,6 +75,11 @@ def test_process_event_requires_datetime() -> None:
             activity="receive_order",
             timestamp="2026-08-27",
         )
+
+
+# =============================================================================
+# Process Trace
+# =============================================================================
 
 
 def test_process_trace_accepts_ordered_events() -> None:
@@ -132,6 +142,11 @@ def test_process_trace_rejects_unordered_events() -> None:
         )
 
 
+# =============================================================================
+# Activity Observation
+# =============================================================================
+
+
 def test_activity_observation_calculates_average_duration() -> None:
     observation = ActivityObservation(
         activity="approve_order",
@@ -169,6 +184,11 @@ def test_activity_observation_rejects_negative_duration() -> None:
         )
 
 
+# =============================================================================
+# Transition Observation
+# =============================================================================
+
+
 def test_transition_observation_can_be_created() -> None:
     observation = TransitionObservation(
         source_activity="receive_order",
@@ -188,6 +208,11 @@ def test_transition_observation_rejects_negative_count() -> None:
             target_activity="approve_order",
             occurrence_count=-1,
         )
+
+
+# =============================================================================
+# Process Intelligence Metrics
+# =============================================================================
 
 
 def test_metrics_can_be_created() -> None:
@@ -229,6 +254,11 @@ def test_metrics_reject_non_numeric_custom_metric() -> None:
                 "rework_rate": "high",
             },
         )
+
+
+# =============================================================================
+# Process Intelligence Dataset
+# =============================================================================
 
 
 def test_dataset_counts_cases() -> None:
@@ -362,6 +392,11 @@ def test_dataset_rejects_invalid_metrics() -> None:
         )
 
 
+# =============================================================================
+# Immutability
+# =============================================================================
+
+
 def test_models_are_immutable() -> None:
     event = ProcessEvent(
         case_id="case-001",
@@ -371,3 +406,28 @@ def test_models_are_immutable() -> None:
 
     with pytest.raises(AttributeError):
         event.activity = "changed"
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_process_event_rejects_invalid_resource() -> None:
+    with pytest.raises(ProcessIntelligenceModelError):
+        ProcessEvent(
+            case_id="case-001",
+            activity="receive_order",
+            timestamp=_timestamp(),
+            resource="   ",
+        )
+
+
+def test_process_event_rejects_invalid_attributes() -> None:
+    with pytest.raises(ProcessIntelligenceModelError):
+        ProcessEvent(
+            case_id="case-001",
+            activity="receive_order",
+            timestamp=_timestamp(),
+            attributes="invalid",
+        )

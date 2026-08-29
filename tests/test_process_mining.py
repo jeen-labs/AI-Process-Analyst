@@ -676,3 +676,24 @@ def test_process_mining_module_exports_are_available() -> None:
         "ProcessMiner",
         "mine_process",
     }
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_process_variant_rejects_non_tuple_activities() -> None:
+    with pytest.raises(ProcessMiningError):
+        ProcessVariant(
+            activities=["receive", "approve"],  # type: ignore[arg-type]
+            occurrence_count=1,
+        )
+
+
+def test_process_variant_rejects_non_integer_occurrence_count() -> None:
+    with pytest.raises(ProcessMiningError):
+        ProcessVariant(
+            activities=("receive", "approve"),
+            occurrence_count="1",  # type: ignore[arg-type]
+        )

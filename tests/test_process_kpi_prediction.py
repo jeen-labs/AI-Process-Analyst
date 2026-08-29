@@ -315,3 +315,29 @@ def test_predict_kpis_convenience_function():
     )
 
     assert result.count == 2
+
+
+def test_kpi_prediction_rejects_non_numeric_predicted_value() -> None:
+    with pytest.raises(ProcessKpiPredictionError):
+        KpiPrediction(
+            kpi_name="Cycle Time",
+            predicted_value="10.0",  # type: ignore[arg-type]
+            historical_average=10.0,
+            observation_count=3,
+            confidence=0.5,
+        )
+
+
+def test_prediction_result_rejects_non_tuple_predictions() -> None:
+    with pytest.raises(ProcessKpiPredictionError):
+        ProcessKpiPredictionResult(
+            predictions=[
+                KpiPrediction(
+                    kpi_name="Cycle Time",
+                    predicted_value=10.0,
+                    historical_average=10.0,
+                    observation_count=3,
+                    confidence=0.5,
+                )
+            ],  # type: ignore[arg-type]
+        )

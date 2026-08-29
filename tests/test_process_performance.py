@@ -605,3 +605,46 @@ def test_performance_metric_is_immutable() -> None:
 
     with pytest.raises(AttributeError):
         metric.value = 20  # type: ignore[misc]
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_performance_metric_rejects_non_string_unit() -> None:
+    with pytest.raises(ProcessPerformanceError):
+        ProcessPerformanceMetric(
+            metric="Average Case Duration",
+            value=120.0,
+            unit=123,  # type: ignore[arg-type]
+        )
+
+
+def test_activity_performance_rejects_non_numeric_duration() -> None:
+    with pytest.raises(ProcessPerformanceError):
+        ActivityPerformance(
+            activity="approve",
+            occurrence_count=1,
+            total_duration_seconds="60",  # type: ignore[arg-type]
+            average_duration_seconds=60.0,
+            median_duration_seconds=60.0,
+            minimum_duration_seconds=60.0,
+            maximum_duration_seconds=60.0,
+        )
+
+
+def test_performance_result_rejects_invalid_activity_performance() -> None:
+    with pytest.raises(ProcessPerformanceError):
+        ProcessPerformanceResult(
+            case_count=1,
+            event_count=1,
+            average_case_duration_seconds=60.0,
+            median_case_duration_seconds=60.0,
+            minimum_case_duration_seconds=60.0,
+            maximum_case_duration_seconds=60.0,
+            throughput_per_day=1440.0,
+            activity_performance=("invalid",),  # type: ignore[arg-type]
+            bottlenecks=(),
+            metrics=(),
+        )

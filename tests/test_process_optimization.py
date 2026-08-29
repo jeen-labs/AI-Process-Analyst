@@ -375,3 +375,39 @@ def test_optimize_processes_convenience_function():
     )
 
     assert result.count == 2
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_optimization_recommendation_rejects_empty_method() -> None:
+    with pytest.raises(ProcessOptimizationError):
+        OptimizationRecommendation(
+            target="Cycle Time",
+            current_value=10.0,
+            target_value=8.0,
+            expected_impact=2.0,
+            improvement_percentage=20.0,
+            confidence=0.8,
+            recommendation="Reduce Cycle Time.",
+            method="   ",
+        )
+
+
+def test_optimization_result_rejects_non_tuple_recommendations() -> None:
+    with pytest.raises(ProcessOptimizationError):
+        ProcessOptimizationResult(
+            recommendations=[
+                OptimizationRecommendation(
+                    target="Cycle Time",
+                    current_value=10.0,
+                    target_value=8.0,
+                    expected_impact=2.0,
+                    improvement_percentage=20.0,
+                    confidence=0.8,
+                    recommendation="Reduce Cycle Time.",
+                )
+            ],  # type: ignore[arg-type]
+        )

@@ -518,3 +518,38 @@ def test_build_digital_twin_convenience_function():
     assert isinstance(snapshot, ProcessDigitalTwinSnapshot)
     assert snapshot.process_name == "Purchase-to-Pay"
     assert snapshot.total_observations == 45
+
+
+# =============================================================================
+# Validation Edge Cases
+# =============================================================================
+
+
+def test_digital_twin_state_rejects_non_integer_observation_count() -> None:
+    with pytest.raises(ProcessDigitalTwinError):
+        DigitalTwinState(
+            state_name="Approved",
+            observation_count="10",  # type: ignore[arg-type]
+        )
+
+
+def test_digital_twin_transition_rejects_non_integer_occurrence_count() -> None:
+    with pytest.raises(ProcessDigitalTwinError):
+        DigitalTwinTransition(
+            source_state="Submitted",
+            target_state="Approved",
+            occurrence_count="10",  # type: ignore[arg-type]
+        )
+
+
+def test_snapshot_rejects_non_integer_total_observations() -> None:
+    with pytest.raises(ProcessDigitalTwinError):
+        ProcessDigitalTwinSnapshot(
+            process_name="Purchase-to-Pay",
+            states=(),
+            transitions=(),
+            total_observations="45",  # type: ignore[arg-type]
+            active_state_count=0,
+            transition_count=0,
+            total_transition_occurrences=0,
+        )
