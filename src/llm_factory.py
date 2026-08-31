@@ -36,10 +36,10 @@ from typing import Any
 # Project Imports
 # =============================================================================
 
-from providers.base_provider import BaseProvider
-from providers.mock_provider import MockProvider
-from providers.openai_provider import OpenAIProvider
-from providers.gemini_provider import GeminiProvider
+from src.providers.base_provider import BaseProvider
+from src.providers.mock_provider import MockProvider
+from src.providers.openai_provider import OpenAIProvider
+from src.providers.gemini_provider import GeminiProvider
 
 #
 # Future Providers

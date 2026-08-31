@@ -42,12 +42,12 @@ from pathlib import Path
 # Project Imports
 # =============================================================================
 
-from document_loader import DocumentLoader
-from document_reader import DocumentReader
-from document_parser import DocumentParser
-from llm_client import LLMClient
-from schema_validator import SchemaValidator
-from process_repository import ProcessRepository
+from src.document_loader import DocumentLoader
+from src.document_reader import DocumentReader
+from src.document_parser import DocumentParser
+from src.llm_client import LLMClient
+from src.schema_validator import SchemaValidator
+from src.process_repository import ProcessRepository
 
 # =============================================================================
 # Classes

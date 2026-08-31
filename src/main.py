@@ -30,16 +30,16 @@ from pathlib import Path
 # Project Imports
 # =============================================================================
 
-from document_catalog import DocumentCatalog
-from document_loader import DocumentLoader
-from document_reader import DocumentReader
-from document_parser import DocumentParser
-from prompt_builder import PromptBuilder
-from llm_client import LLMClient
-from response_parser import ResponseParser
-from response_normalizer import ResponseNormalizer
-from schema_validator import SchemaValidator
-from process_repository import ProcessRepository
+from src.document_catalog import DocumentCatalog
+from src.document_loader import DocumentLoader
+from src.document_reader import DocumentReader
+from src.document_parser import DocumentParser
+from src.prompt_builder import PromptBuilder
+from src.llm_client import LLMClient
+from src.response_parser import ResponseParser
+from src.response_normalizer import ResponseNormalizer
+from src.schema_validator import SchemaValidator
+from src.process_repository import ProcessRepository
 
 
 # =============================================================================

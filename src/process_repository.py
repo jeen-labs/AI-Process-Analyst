@@ -30,7 +30,7 @@ Status:
 # Project Imports
 # =============================================================================
 
-from models.process_model import ProcessModel
+from src.models.process_model import ProcessModel
 
 
 # =============================================================================

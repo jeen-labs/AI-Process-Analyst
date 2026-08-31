@@ -55,8 +55,8 @@ from typing import Any
 
 from google import genai
 
-from providers.base_provider import BaseProvider
-from utils.retry import retry
+from src.providers.base_provider import BaseProvider
+from src.utils.retry import retry
 
 
 class GeminiProvider(BaseProvider):

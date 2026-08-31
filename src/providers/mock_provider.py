@@ -31,8 +31,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from providers.base_provider import BaseProvider
-from mock_llm_response import generate_mock_response
+from src.providers.base_provider import BaseProvider
+from src.mock_llm_response import generate_mock_response
 
 
 class MockProvider(BaseProvider):
